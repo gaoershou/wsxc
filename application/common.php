@@ -63,3 +63,120 @@ function randCode($length = 5, $type = 0)
 
     return $code;
 }
+
+/**
+ * 取一个二维数组中的每个数组的固定的键知道的值来形成一个新的一维数组.
+ *
+ * @param $pArray 一个二维数组
+ * @param string $pKey 数组的键的名称
+ * @param string $pCondition
+ * @return array|bool
+ */
+function getSubByKey($pArray, $pKey = '', $pCondition = '')
+{
+    $result = array();
+    if (is_array($pArray)) {
+        foreach ($pArray as $temp_array) {
+            if (is_object($temp_array)) {
+                $temp_array = (array) $temp_array;
+            }
+            if (('' != $pCondition && $temp_array[$pCondition[0]] == $pCondition[1]) || '' == $pCondition) {
+                $result[] = ('' == $pKey) ? $temp_array : isset($temp_array[$pKey]) ? $temp_array[$pKey] : '';
+            }
+        }
+        return $result;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * 稳定 二维数组按字段排序排序
+ *
+ */
+function columnSort($ary,$column) {
+
+    $last_names = array_column($ary,$column);//根据字段对二维数组进行降序
+    array_multisort($last_names,SORT_DESC,$ary);
+    return $ary;
+}
+/**
+ * 查找字符串中的数字
+ *
+ * @param string $str
+ * @return string
+ */
+function findNum($str='') {
+    if($str){
+        preg_match("/\d+/is",$str,$v);
+    }
+    $StrInt = @$v[0];
+    if($StrInt) {
+        return $StrInt;
+    } else {
+        return $str;
+    }
+}
+/**
+ * 获取字符串的首字母
+ *
+ * @param $s0
+ * @return string
+ */
+function getInitial($s0)
+{
+    $s0 = trim($s0);
+    $firstchar_ord=ord(strtoupper($s0{0}));
+    if (($firstchar_ord>=65 and $firstchar_ord<=91)or($firstchar_ord>=48 and $firstchar_ord<=57)) return strtoupper($s0{0});
+    $s = iconv('utf-8', 'gbk', $s0);
+    $asc=ord($s{0})*256+ord($s{1})-65536;
+    if($asc>=-20319 and $asc<=-20284)return "A";
+    if($asc>=-20283 and $asc<=-19776)return "B";
+    if($asc>=-19775 and $asc<=-19219)return "C";
+    if($asc>=-19218 and $asc<=-18711)return "D";
+    if($asc>=-18710 and $asc<=-18527)return "E";
+    if($asc>=-18526 and $asc<=-18240)return "F";
+    if($asc>=-18239 and $asc<=-17923)return "G";
+    if($asc>=-17922 and $asc<=-17418)return "H";
+    if($asc>=-17417 and $asc<=-16475)return "J";
+    if($asc>=-16474 and $asc<=-16213)return "K";
+    if($asc>=-16212 and $asc<=-15641)return "L";
+    if($asc>=-15640 and $asc<=-15166)return "M";
+    if($asc>=-15165 and $asc<=-14923)return "N";
+    if($asc>=-14922 and $asc<=-14915)return "O";
+    if($asc>=-14914 and $asc<=-14631)return "P";
+    if($asc>=-14630 and $asc<=-14150)return "Q";
+    if($asc>=-14149 and $asc<=-14091)return "R";
+    if($asc>=-14090 and $asc<=-13319)return "S";
+    if($asc>=-13318 and $asc<=-12839)return "T";
+    if($asc>=-12838 and $asc<=-12557)return "W";
+    if($asc>=-12556 and $asc<=-11848)return "X";
+    if($asc>=-11847 and $asc<=-11056)return "Y";
+    if($asc>=-11055 and $asc<=-10247)return "Z";
+    return 'Others';
+}
+/*
+ * 根据多个字段排序
+ */
+function sortArrByManyField(){
+    $args = func_get_args();
+    if(empty($args)){
+        return null;
+    }
+    $arr = array_shift($args);
+    if(!is_array($arr)){
+        throw new Exception("第一个参数不为数组");
+    }
+    foreach($args as $key => $field){
+        if(is_string($field)){
+            $temp = array();
+            foreach($arr as $index=> $val){
+                $temp[$index] = $val[$field];
+            }
+            $args[$key] = $temp;
+        }
+    }
+    $args[] = &$arr;//引用值
+    call_user_func_array('array_multisort',$args);
+    return array_pop($args);
+}

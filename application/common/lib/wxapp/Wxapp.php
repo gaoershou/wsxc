@@ -121,12 +121,11 @@ class Wxapp {
         $data['unionid'] = $unionid;
         $data['login_time'] = time();
         $data['from_type'] = 2;
-        $userTokenObj = Db::name('user_token');
-        $userTokenInfo = $userTokenObj->where('unionid',$unionid)->find();
+        $userTokenInfo = Db::name('user_token')->where('unionid',$unionid)->find();
         if(!$userTokenInfo) {
-            $result = $userTokenObj->insert($data);
+            $result = Db::name('user_token')->insert($data);
         } else {
-            $result = $userTokenObj->where('unionid',$unionid)->update($data);
+            $result = Db::name('user_token')->where('unionid',$unionid)->update($data);
             cache(config('weixin.cache_prefix').$userTokenInfo['token'],null);
         }
         $token = '';
