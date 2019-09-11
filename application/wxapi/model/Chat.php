@@ -81,6 +81,33 @@ class Chat extends Model
         return $result;
     }
 
+    public static function getChatHistoryData($userid, $touserid, $machineid,$muserid)
+    {
+        $table = 'wsxc_chathistory:userid'.$userid.'_touserid'.$touserid.'_machineid'.$machineid;
+
+        $result = [
+            'status' => 'success',
+            'code'   => 0,
+            'message'=> '成功',
+            'data'   => [],
+        ];
+
+        $data = Redis::zrevrange($table, 0, -1);
+
+        if ($data && !empty($data)){
+            $userIds  = [];
+            $machineIds = [];
+            foreach ($data as $index => $oneList) {
+                $oneListData  = json_decode($oneList, true);
+                $data[$index] = $oneListData;
+            }
+
+            $result['data'] = $data;
+        }
+
+        return $result;
+    }
+
     private static function selectMemebersByUserids($ids)
     {
         $membersData = Db::name('member')
@@ -94,7 +121,7 @@ class Chat extends Model
     private static function selectMachineByMachineid($mids)
     {
         $membersData = Db::name('cars')
-            ->field('p_id, p_allname, p_keyword,p_price,p_details,p_addtime')
+            ->field('p_id,uid, p_allname, p_keyword,p_price,p_details,p_addtime')
             ->where('p_id in ('.$mids.')')
             ->select();
 
