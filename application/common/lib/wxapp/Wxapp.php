@@ -78,7 +78,7 @@ class Wxapp {
      */
     public function decryptData($sessionKey,$encryptedData, $iv){
         if (strlen($sessionKey) != 24) {
-            return self::$IllegalAesKey;
+            return 0;
         }
         $aesKey = base64_decode($sessionKey);
 
@@ -93,10 +93,10 @@ class Wxapp {
 
         $dataObj = json_decode($result);
         if( $dataObj  == NULL ) {
-            return self::$IllegalBuffer;
+            return 0;
         }
         if( $dataObj->watermark->appid != self::$appid ) {
-            return self::$IllegalBuffer;
+            return 0;
         }
 
         return json_decode($result,true);
@@ -131,7 +131,7 @@ class Wxapp {
         $token = '';
         if($result) {
             $token = $token_string;
-            cache($cackekey,$token_string);
+            cache($cackekey,$data);
         }
         return $token;
     }
