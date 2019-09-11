@@ -15,7 +15,7 @@ class ChatController extends Controller
     }
 
     /**
-     * 获取我的联系人
+     * 我的联系人
      * @param userid int  当前用户id
      */
     public function contactMyselfList()
@@ -28,7 +28,32 @@ class ChatController extends Controller
             return json($chatVilidateResult);
         }
 
-        return ChatModel::getContactMyselfList();
+        $userid = $chatVilidateResult['data'];
+
+        $data = ChatModel::getContactMyselfList($userid);
+
+        return json($data);
+    }
+
+    /**
+     * 联系我的
+     * @param userid int  当前用户id
+     */
+    public function contactOtherList()
+    {
+        $request = request();
+
+        $chatVilidateResult = ChatValidate::checkRequest($request);
+
+        if ($chatVilidateResult['status'] == 'error') {
+            return json($chatVilidateResult);
+        }
+
+        $userid = $chatVilidateResult['data'];
+
+        $data = ChatModel::getContactOtherList($userid);
+
+        return json($data);
     }
 
 

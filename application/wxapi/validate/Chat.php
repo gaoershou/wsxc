@@ -25,7 +25,7 @@ class Chat extends Validate
     {
         $result = [
             'status'  => 'success',
-            'code'    => 200,
+            'code'    => 0,
             'message' => '成功',
             'data'    => [],
         ];
@@ -37,11 +37,17 @@ class Chat extends Validate
             $result['code']    = 4001;
             $result['message'] ='非法的请求';
 
+            return $result;
+
         } else if (!isset($params['userid']) || !$params['userid']) {
             $result['status']  = 'error';
             $result['code']    = 4002;
             $result['message'] ='参数错误';
+
+            return $result;
         }
+
+        $result['data'] = $params['userid'];
 
         return $result;
     }
