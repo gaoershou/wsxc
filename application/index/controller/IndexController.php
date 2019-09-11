@@ -1,7 +1,10 @@
 <?php
 namespace app\index\controller;
 
-class Index
+use app\common\lib\redis\Redis;
+use think\Controller;
+
+class IndexController extends Controller
 {
     public function index()
     {
@@ -10,6 +13,10 @@ class Index
 
     public function hello($name = 'ThinkPHP5')
     {
+        $redis = new Redis();
+        $redis::set('dede','我就笑笑22');
+        echo $redis::get('dede');
+        echo phpinfo();
         return 'hello,' . $name;
     }
 }
