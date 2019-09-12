@@ -180,3 +180,44 @@ function sortArrByManyField(){
     call_user_func_array('array_multisort',$args);
     return array_pop($args);
 }
+/*
+ * 添加图片
+ */
+function addCarImages($pid,$imgsUrl,$type=0){
+    $imageArr = explode(',', $imgsUrl);
+    \think\Db::name('cars_images')->where('p_id',$pid)->delete();
+    $data = array();
+    foreach($imageArr as $key=>$value) {
+        $data[] = array(
+            'p_id' => $pid,
+            'type_id' => $type,
+            'image_path' => $value,
+            'qiniu_key' => basename($value),
+            'create_time' => time()
+        );
+    }
+    $ret = \think\Db::name('cars_images')->where('p_id',$pid)->insertAll($data);
+    return $ret;
+
+}
+
+/*
+ * 添加视频
+ */
+function addCarVideos($pid,$videosUrl,$type=0){
+    $videoArr = explode(',', $videosUrl);
+    \think\Db::name('cars_video')->where('p_id',$pid)->delete();
+    $data = array();
+    foreach($videoArr as $value) {
+        $data[] = array(
+            'p_id' => $pid,
+            'type_id' => $type,
+            'video_path' => $value,
+            'qiniu_key' => basename($value),
+            'create_time' => time()
+        );
+
+    }
+    $ret = \think\Db::name('cars_video')->where('p_id',$pid)->insertAll($data);
+    return $ret;
+}

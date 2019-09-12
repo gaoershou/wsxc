@@ -83,7 +83,7 @@ class Wxapp {
         $aesKey = base64_decode($sessionKey);
 
         if (strlen($iv) != 24) {
-            return self::$IllegalIv;
+            return 0;
         }
         $aesIV = base64_decode($iv);
 

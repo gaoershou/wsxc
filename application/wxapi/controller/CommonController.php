@@ -93,7 +93,7 @@ class CommonController extends Controller
     }
 
     /**
-     * 获取热门品牌
+     * 获取品牌
      *
      * @param  int  $id
      * @return \think\Response

@@ -21,5 +21,7 @@ Route::group('wxapi', function () {
     Route::post('selectCateBrand', 'wxapi/Common/selectCateBrand');//获取车源品牌数据
     Route::get('selectCateList', 'wxapi/Common/selectCateList');//选择机型列表
     Route::post('selectNewSerial', 'wxapi/Common/selectNewSerial');//选择品牌系列
+    Route::post('uploadBasicInfo', 'wxapi/Photo/uploadBasicInfo');//上传机源的基本信息
+    Route::post('uploadResource', 'wxapi/Photo/uploadResource');//上传机源的照片和视频
 })->middleware('checkToken')->allowCrossDomain();
 
