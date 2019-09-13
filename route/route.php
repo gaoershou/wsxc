@@ -22,5 +22,7 @@ Route::group('wxapi', function () {
     Route::post('selectNewSerial', 'wxapi/Common/selectNewSerial');//选择品牌系列
     Route::post('uploadBasicInfo', 'wxapi/Photo/uploadBasicInfo');//上传机源的基本信息
     Route::post('uploadResource', 'wxapi/Photo/uploadResource');//上传机源的照片和视频
+    Route::post('getPhotoListsInfo', 'wxapi/Photo/getPhotoListsInfo');//获取相册列表
+    Route::post('getPhotoDetailsInfo', 'wxapi/Photo/getPhotoDetailsInfo');//获取相册详情
 })->middleware('checkToken')->allowCrossDomain();
 

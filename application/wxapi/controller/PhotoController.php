@@ -148,29 +148,32 @@ class PhotoController extends Controller
      */
     public function getPhotoListsInfo(Request $request)
     {
-        $reqData = $request->param();//获取传递过来的数据
-        $tokenInfo = $reqData['tokenInfo'];//获取用户信息
+        $tokenInfo = $request->param('tokenInfo');//获取用户信息
+
         if(!$tokenInfo['u_id']){
             return json(config('weixin.common')[2]);
         }
+        $p = $request->param('p');
+        $pType = $request->param('p_type');
+        $keyword = $request->param('keyword');
         $where = "from_type = 1 and uid = {$tokenInfo['u_id']}";
-        $keyword =  array_key_exists('keyword',$reqData)? $reqData['keyword'] :'';
-        $p = $reqData['p'] ? intval($reqData['p']) : 1;//分页，默认是1
+        $p = $p ? intval($p) : 1;//分页，默认是1
         $limit = 10;
         $offset = ($p-1)*$limit;
         if($keyword){
             $where .= " and p_allname like %{$keyword}%";
         }
-        $type = $reqData['p_type'] ? intval($reqData['p_type']) : 0;
+        $type = $pType ? intval($pType) : 0;
         if($type){
             $where .= " and p_type = {$type}";
         }
-        $weixinInfo = Db::name('member_weixin')->where('uid',$tokenInfo['u_id'])->field('nickname,headimgurl');
-        $userInfo = Db::name('member')->where('id',$tokenInfo['u_id'])->field('default_logo,mobilephone');
+        $weixinInfo = Db::name('member_weixin')->where('uid',$tokenInfo['u_id'])->field('nickname,headimgurl')->find();
+        $userInfo = Db::name('member')->where('id',$tokenInfo['u_id'])->field('default_logo,mobilephone')->find();
         $headImg = $userInfo['default_logo'] ? $userInfo['default_logo'] : $weixinInfo['headimgurl'];
         $memberInfo = array(
             'u_id' => $tokenInfo['u_id'],
             'head_img' => $headImg,
+            'nickname' => $weixinInfo['nickname'],
             'mobile' => $userInfo['mobilephone']
         );
         $carsListsInfo = Db::name('cars')->where($where)->field('p_id,p_type,p_allname,p_price')->limit($offset,$limit)->select();
@@ -229,35 +232,50 @@ class PhotoController extends Controller
         }else{//不存在的话
             $uid = $tokenInfo['u_id'];
         }
-        $filed = 'p_certificate,p_invoice,p_clear,p_price,p_hammer,p_allname,p_price,p_year,p_declaration,p_pipeline,p_hours,p_details,p_type,thumbs_up,hits,transfer_deposit,operating_type';
+        $filed = 'p_certificate,p_is_sold_out,p_invoice,p_clear,p_price,p_hammer,p_allname,p_price,p_year,p_declaration,p_pipeline,p_hours,p_details,p_type,thumbs_up,p_hits,transfer_deposit,operating_type';
         //获取机源信息
         $carsInfo = Db::name('cars')->where('p_id',$pId)->field($filed)->find();
-        $otherInfo = array();
-        if($carsInfo['p_certificate']==1){$otherInfo[]="合格证";}
-        if($carsInfo['p_invoice']==1){$otherInfo[]="发票";}
-        if($carsInfo['p_clear']==1){$otherInfo[]="结清证明";}
-        if($carsInfo['p_hammer']==1){$otherInfo[]="带锤";}
-        if($carsInfo['p_pipeline']==1){$otherInfo[]="带管路";}
-        if($carsInfo['p_declaration']==1){$otherInfo[]="报关单";}
-        $carsInfo['base_info'] = $otherInfo;
-        //工况信息
-        $operatingInfo = explode(',',$carsInfo['operating_type']);
-        $operatingType = array('其他','土方','石方','破碎');
-        $operatType = array();
-        foreach ($operatingInfo as $val){
-            $operatType[] = $operatingType[$val];
+        if($carsInfo){
+            $otherInfo = array();
+            if($carsInfo['p_certificate']==1){$otherInfo[]="合格证";}
+            if($carsInfo['p_invoice']==1){$otherInfo[]="发票";}
+            if($carsInfo['p_clear']==1){$otherInfo[]="结清证明";}
+            if($carsInfo['p_hammer']==1){$otherInfo[]="带锤";}
+            if($carsInfo['p_pipeline']==1){$otherInfo[]="带管路";}
+            if($carsInfo['p_declaration']==1){$otherInfo[]="报关单";}
+            $carsInfo['base_info'] = $otherInfo;
+            //工况信息
+            $operatingInfo = explode(',',$carsInfo['operating_type']);
+            $operatingType = array('其他','土方','石方','破碎');
+            $operatType = array();
+            foreach ($operatingInfo as $val){
+                $operatType[] = $operatingType[$val];
+            }
+            $carsInfo['operating_type'] = $operatType;
+            //挖机图片
+            $imagesUrl = Db::name('cars_images')->where('p_id',$pId)->field('image_path')->select();
+            //转化成一维数组
+            $imagesList = getSubByKey($imagesUrl,'image_path');
+            $carsInfo['images_list'] =  $imagesList;
+            //挖机图片
+            $videosUrl = Db::name('cars_video')->where('p_id',$pId)->field('video_path')->select();
+            //转化成一维数组
+            $videosList = getSubByKey($videosUrl,'video_path');
+            $carsInfo['videos_list'] =  $videosList;
+            $data = array(
+                'code' => 0,
+                'msg' => '获取成功',
+                'data' => $carsInfo
+            );
+            return json($data);
+        }else{
+            $data = array(
+                'code' => 1,
+                'msg' => '没有更多数据了！'
+            );
+            return json($data);
         }
-        $carsInfo['operating_type'] = $operatType;
-        //挖机图片
-        $imagesUrl = Db::name('cars_images')->where('p_id',$pId)->field('image_path')->select();
-        //转化成一维数组
-        $imagesList = getSubByKey($imagesUrl,'image_path');
-        $carsInfo['images_list'] =  $imagesList;
-        //挖机图片
-        $videosUrl = Db::name('cars_videos')->where('p_id',$pId)->field('video_path')->select();
-        //转化成一维数组
-        $videosList = getSubByKey($videosUrl,'video_path');
-        $carsInfo['videos_list'] =  $videosList;
+
 
     }
 
