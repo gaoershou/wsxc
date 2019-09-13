@@ -183,9 +183,12 @@ function sortArrByManyField(){
 /*
  * 添加图片
  */
-function addCarImages($pid,$imgsUrl,$type=0){
+function addCarImages($pid,$imgsUrl,$type=0,$opt=0){
     $imageArr = explode(',', $imgsUrl);
-    \think\Db::name('cars_images')->where('p_id',$pid)->delete();
+    if($opt==0){//0是添加
+        \think\Db::name('cars_images')->where('p_id',$pid)->delete();
+    }
+
     $data = array();
     foreach($imageArr as $key=>$value) {
         $data[] = array(
@@ -204,9 +207,11 @@ function addCarImages($pid,$imgsUrl,$type=0){
 /*
  * 添加视频
  */
-function addCarVideos($pid,$videosUrl,$type=0){
+function addCarVideos($pid,$videosUrl,$type=0,$opt=0){
     $videoArr = explode(',', $videosUrl);
-    \think\Db::name('cars_video')->where('p_id',$pid)->delete();
+    if($opt==0){//0是添加1是修改
+        \think\Db::name('cars_video')->where('p_id',$pid)->delete();
+    }
     $data = array();
     foreach($videoArr as $value) {
         $data[] = array(
@@ -220,4 +225,18 @@ function addCarVideos($pid,$videosUrl,$type=0){
     }
     $ret = \think\Db::name('cars_video')->where('p_id',$pid)->insertAll($data);
     return $ret;
+}
+/*
+ * 价格转换
+ */
+function getPriceToWan($price) {
+    return $price >= 10000 ? number_format($price/10000, 2) .'万元' : wipeZero($price).'元';
+}
+/*
+ * 格式化数字
+ */
+function wipeZero($num){
+    $num = strrev((float)sprintf("%.2f", $num));
+    $num = strrev($num);
+    return $num;
 }

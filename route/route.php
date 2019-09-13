@@ -10,8 +10,7 @@
 // +----------------------------------------------------------------------
 
 Route::post('wxapi/login','wxapi/User/login')->allowCrossDomain();//登录
-
-Route::get('wxapi/test', 'wxapi/User/test')->allowCrossDomain();
+Route::get('wxapi/test', 'wxapi/Common/test')->allowCrossDomain();//测试代码
 Route::get('wxapi/getProvince', 'wxapi/Common/getProvince')->allowCrossDomain();//获取省级数据
 Route::post('wxapi/getCity', 'wxapi/Common/getCity')->allowCrossDomain();//获取市级数据
 

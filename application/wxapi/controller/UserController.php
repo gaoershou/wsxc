@@ -23,7 +23,7 @@ class UserController extends Controller
         $encryptedData = $requestData['encryptedData'];
         $iv = $requestData['iv'];
         $authMobile = $requestData['mobile'];
-         $wxappObj = Wxapp::getInstance(config('weixin.wmxc_app'),config('weixin.wmxc_secrect'));
+         $wxappObj = Wxapp::getInstance(config('weixin.subs_app'),config('weixin.subs_secrect'));
        //过滤参数Validate::checkRule($value,'must|email');静态调用验证
        $wxappInfo = $wxappObj->oauth2_access_token($code);
        $sessionKey = $wxappInfo['session_key'];
