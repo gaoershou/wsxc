@@ -230,7 +230,7 @@ function addCarVideos($pid,$videosUrl,$type=0,$opt=0){
  * 价格转换
  */
 function getPriceToWan($price) {
-    return $price >= 10000 ? number_format($price/10000, 2) .'万元' : wipeZero($price).'元';
+    return $price >= 1000 ? number_format($price/10000, 2) .'万元' : number_format($price/10000, 3) .'万元';
 }
 /*
  * 格式化数字

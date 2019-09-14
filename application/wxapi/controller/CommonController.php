@@ -39,7 +39,53 @@ class CommonController extends Controller
             return json(config('weixin.common')[1]);//获取成败
         }
     }
+    public function getProvinceAndCity()
+    {
+        $provinceKey = config('weixin.pro_and_city');
+        $provinceAndCity = cache($provinceKey);
+        if(!$provinceAndCity){
+            $provinceList = Db::name('province')->where('isopen',1)->field('prov_id,prov_name')->order('prov_id','asc')->select();
+            $prov_id = getSubByKey($provinceList, 'prov_id');
+            $prov_id_str = implode(',',$prov_id);
+            $cityInfo = Db::name('city')->where("isopen=1 and prov_id in({$prov_id_str})")->field('city_id,city_name,prov_id')->select();
+            $array = array();
+            foreach ($cityInfo as $val){
+                $array[$val['prov_id']][] = array('id'=>$val['city_id'],'name'=>$val['city_name']);
+            }
+            $province = array();
+            foreach($provinceList as $key=>$value) {
 
+                $province[$key] = array(
+                    'id' => $value['prov_id'],
+                    'name' => $value['prov_name'],
+                    'sub' => array(
+                        'id' => $value['prov_id'],
+                        'name' => $value['prov_name'],
+                        'sub' => $array[$value['prov_id']]
+                    )
+                );
+            }
+            if($province) {
+                cache(config('weixin.pro_and_city'),$province,28800);
+                $data = array(
+                    'code' => 0,
+                    'msg'  => '获取省份数据成功',
+                    'data' => $province
+                );
+                return json($data);//获取成功
+            } else {
+                return json(config('weixin.common')[1]);//获取成败
+            }
+        }else{
+            $data = array(
+                'code' => 0,
+                'msg'  => '获取省份数据成功',
+                'data' => $provinceAndCity
+            );
+            return json($data);//获取成功
+        }
+
+    }
     /**
      * 获取市级数据
      * @param prov_id 省份id

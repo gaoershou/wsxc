@@ -31,6 +31,8 @@ class PhotoController extends Controller
             'cate_name' => 'require',
             'model_name' => 'require',
         ]);
+        $pId = request()->param('p_id');
+        $pId = $pId ? intval($pId) : 0;
         if(!$validate->check($requestData)){//验证不通过
             return json(array('code'=>-1,'msg'=>$validate->getError()));
         }
@@ -73,18 +75,30 @@ class PhotoController extends Controller
             'operating_type' => $requestData['operating_type'],//工况类型
             'from_type' => 1,//0是来源置换宝 1是来源相册
         );
+        if($pId>0){//更改信息
+            $ret = Db::name('cars')->where('p_id',$pId)->update($data);
+            if($ret){
+                $returnData = array(
+                    'id' => $pId,
+                    'photo_name' => $allName
+                );
+                return json(array('code'=>0,'msg'=>'修改车源成功','data'=>$returnData));
+            }else{
+                return json(config('weixin.common')[8]);
+            }
 
-        $ret = Db::name('cars')->insertGetId($data);//插入数据
-        if($ret){
+        }else{
+            $ret = Db::name('cars')->insertGetId($data);//插入数据
+            if($ret){
                 $returnData = array(
                     'id' => $ret,
                     'photo_name' => $allName
                 );
                 return json(array('code'=>0,'msg'=>'添加车源成功','data'=>$returnData));
-        }else{
+            }else{
                 return json(config('weixin.common')[6]);
+            }
         }
-
 
     }
 
@@ -227,14 +241,11 @@ class PhotoController extends Controller
             return json(config('weixin.common')[2]);//缺少必要参数
         }
         $shareId = request()->param('share_id');
-        if($shareId){//存在的话说明是通过分享进来的
-            $uid = $shareId;
-        }else{//不存在的话
-            $uid = $tokenInfo['u_id'];
-        }
+
         $filed = 'p_certificate,p_is_sold_out,p_invoice,p_clear,p_price,p_hammer,p_allname,p_price,p_year,p_declaration,p_pipeline,p_hours,p_details,p_type,thumbs_up,p_hits,transfer_deposit,operating_type';
         //获取机源信息
-        $carsInfo = Db::name('cars')->where('p_id',$pId)->field($filed)->find();
+        $where = "from_type = 1 and p_id = {$pId}";
+        $carsInfo = Db::name('cars')->where($where)->field($filed)->find();
         if($carsInfo){
             $otherInfo = array();
             if($carsInfo['p_certificate']==1){$otherInfo[]="合格证";}
@@ -247,6 +258,7 @@ class PhotoController extends Controller
             //工况信息
             $operatingInfo = explode(',',$carsInfo['operating_type']);
             $operatingType = array('其他','土方','石方','破碎');
+            $carsInfo['p_price'] = $carsInfo['p_price'] ? getPriceToWan($carsInfo['p_price']):'面议';
             $operatType = array();
             foreach ($operatingInfo as $val){
                 $operatType[] = $operatingType[$val];
@@ -262,6 +274,7 @@ class PhotoController extends Controller
             //转化成一维数组
             $videosList = getSubByKey($videosUrl,'video_path');
             $carsInfo['videos_list'] =  $videosList;
+            $carsInfo['head_img'] = $shareId ? Db::name('member')->where('id',$shareId)->value('default_logo') :'';
             $data = array(
                 'code' => 0,
                 'msg' => '获取成功',
@@ -280,26 +293,109 @@ class PhotoController extends Controller
     }
 
     /**
-     * 显示编辑资源表单页.
+     * 获取我的相册的基本信息
      *
      * @param  int  $id
      * @return \think\Response
      */
-    public function edit($id)
+    public function getPhotoBasicInfo()
     {
-        //
+        $pId = request()->param('p_id');//机源id
+        if(!$pId){
+            return json(config('weixin.common')[2]);//缺少必要参数
+        }
+        $carsInfo = Db::name('cars')->where('p_id',$pId)->find();
+        if($carsInfo){
+            $carsInfo['p_price'] = $carsInfo['p_price'] ? $carsInfo['p_price']/10000 : 0;
+            $carsInfo['brand_name'] = Db::name('cars_brand')->where("is_show = 0 and id ={$carsInfo['brand_id']}")->value('name');
+            $carsInfo['cate_name'] = Db::name('cars_category')->where("is_show = 0 and id ={$carsInfo['second_cate_id']}")->value('name');
+            $carsInfo['model_name'] = Db::name('cars_model')->where("id ={$carsInfo['model_id']}")->value('name');
+            $carsInfo['operating_type'] = explode(',',$carsInfo['operating_type']);
+            $data = array(
+                'code' => 0,
+                'msg' => '获取成功',
+                'data' => $carsInfo
+            );
+            return json($data);
+        }else{
+            $data = array(
+                'code' => 1,
+                'msg' => '获取失败'
+            );
+            return json($data);
+        }
     }
 
     /**
-     * 保存更新的资源
+     * 更改点赞数
      *
      * @param  \think\Request  $request
      * @param  int  $id
      * @return \think\Response
      */
-    public function update(Request $request, $id)
+    public function updateThumbsUpNums()
     {
-        //
+        $tokenInfo = request()->param('tokenInfo');
+        $shareId = request()->param('share_id');
+        $pId = request()->param('p_id');
+        $uid = $tokenInfo['u_id'];
+        $status = request()->param('status'); //1是取消点赞 2是点赞
+        if(!$shareId || !$status || !$pId || !$uid){
+            return json(config('weixin.common')[2]);//缺少必要参数
+        }
+        if($uid == $shareId){
+            return json(config('weixin.photo')[4]);
+        }
+        $where = "pid = {$pId} and uid = {$uid}";
+        $ret = Db::name('cars_thumbs_record')->where($where)->field('id')->find();
+        if($status == 2){//点赞
+            if($ret){
+                json(config('weixin.photo')[1]);//您已经点过赞不能重复点赞
+            }else{//进行点赞
+                $data = array(
+                    'pid' => intval($pId),
+                    'uid' => intval($uid),
+                    'shareuid' => intval($shareId),//分享者id
+                    'addtime' => time(),
+                    'ip' => request()->ip(),
+                    'user_agent' =>request()->header('user-agent'),
+                    'from' => 1 //1是挖盟小程序
+                );
+                $res = Db::name('cars_thumbs_record')->insert($data);
+                if($res){
+                    Db::name('cars')->where('p_id',$pId)->setInc('thumbs_up',1);
+                    $nums =  Db::name('cars')->where('p_id',$pId)->value('thumbs_up');
+                    $returnData = array(
+                        'code' => 0,
+                        'msg' => '点赞成功！',
+                        'thumbs_up' => $nums
+                    );
+                    return json($returnData);
+                }else{
+                    return json(config('weixin.photo')[3]);
+                }
+
+            }
+        }else{//取消点赞
+            if(!$ret){
+                json(config('weixin.photo')[1]);//您已经点过赞不能重复点赞
+            }
+            $res = Db::name('cars_thumbs_record')->where($where)->delete();
+            if($res){
+                Db::name('cars')->where('p_id',$pId)->setDec('thumbs_up',1);
+                $nums =  Db::name('cars')->where('p_id',$pId)->value('thumbs_up');
+                $returnData = array(
+                    'code' => 0,
+                    'msg' => '取消点赞成功！',
+                    'thumbs_up' => $nums
+                );
+                return json($returnData);
+            }else{
+                return json(config('weixin.photo')[3]);
+            }
+
+        }
+
     }
 
     /**

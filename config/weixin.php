@@ -13,6 +13,7 @@ return [
     'token_salt' => 'ppjixie2019123!',//给token加点盐
     'cache_prefix' => 'ppjixie2019',//token缓存前缀
     'prov_prefix' => 'province_arr',
+    'pro_and_city' => 'pro_and_city',
     'brand_cars' => array(
         'all_frist' => 'all_brand_frist',//设备所有品牌
         'all_recom' => 'all_brand_recom',//设备热门品牌
@@ -85,26 +86,6 @@ return [
             'code' => 30002,
             'msg' => '上传图片和视频都失败'
         ),
-        3 => array(
-            'code' => 20003,
-            'msg' => '获取城市数据失败'
-        ),
-        4 => array(
-            'code' => 20004,
-            'msg' => '获取设备类型数据失败'
-        ),
-        5 => array(
-            'code' => 20005,
-            'msg' => '获取设备系列数据失败'
-        ),
-        6 => array(
-            'code' => 20006,
-            'msg' => '添加失败'
-        ),
-        7 => array(
-            'code' => 20007,
-            'msg' => '图片和视频都没有上传'
-        ),
     ),
     'common' => array(//通用的参数
         0 => array(
@@ -139,5 +120,32 @@ return [
             'code' => 20007,
             'msg' => '图片和视频都没有上传'
         ),
+        8 => array(
+            'code' => 20008,
+            'msg' => '修改失败'
+        ),
+    ),
+    'photos' => array(//通用的参数
+        0 => array(
+            'code' => 0,
+            'msg' => '点赞成功！'
+        ),
+        1 => array(
+            'code' => 40001,
+            'msg' => '您已经点过赞不能重复点赞'
+        ),
+        2 => array(
+            'code' => 40002,
+            'msg' => '您还没有点过赞，不能取消点赞！'
+        ),
+        3 => array(
+            'code' => 2,
+            'msg' => '操作失败'
+        ),
+        4 => array(
+            'code' => 40003,
+            'msg' => '自己不能给自己点赞！'
+        ),
+
     )
 ];
