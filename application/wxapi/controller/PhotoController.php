@@ -55,6 +55,7 @@ class PhotoController extends Controller
             'p_username' => $userName,//联系人
             'p_tel' => $tel,//电话
             'p_addtime' => time(),//发布时间
+            'p_listtime' => time(),//更新时间
             'uid' => $tokenInfo['u_id'],//人员id
             'serial_id' => $serialId,//机源系列
             'first_cate_id' => $firstCateId,//商品一级分类id
@@ -237,16 +238,34 @@ class PhotoController extends Controller
     {
         $tokenInfo = request()->param('tokenInfo');
         $pId = request()->param('p_id');
-        if(!$pId){//
+        $uid = $tokenInfo['u_id'];
+        if(!$pId || !$uid){
             return json(config('weixin.common')[2]);//缺少必要参数
         }
         $shareId = request()->param('share_id');
+        if($shareId){//分享id说明浏览过了
+            $data = array(
+                'pid' => intval($pId),
+                'uid' => intval($uid),
+                'shareuid' => intval($shareId),//分享者id
+                'addtime' => time(),
+                'ip' => request()->ip(),
+                'user_agent' =>request()->header('user-agent'),
+                'from' => 1, //1是挖盟小程序
+                'type' => 1 //1是浏览
+            );
+            $res = Db::name('cars_thumbs_record')->insert($data);
+            if($res){
+                Db::name('cars')->where('p_id',$pId)->setInc('p_hits',1);//浏览数加1
+            }
+        }
 
         $filed = 'p_certificate,p_is_sold_out,p_invoice,p_clear,p_price,p_hammer,p_allname,p_price,p_year,p_declaration,p_pipeline,p_hours,p_details,p_type,thumbs_up,p_hits,transfer_deposit,operating_type';
         //获取机源信息
         $where = "from_type = 1 and p_id = {$pId}";
         $carsInfo = Db::name('cars')->where($where)->field($filed)->find();
         if($carsInfo){
+            $is_transfer = Db::name('cars_thumbs_record')->where("type = 3 and uid = {$uid}")->count('id');
             $otherInfo = array();
             if($carsInfo['p_certificate']==1){$otherInfo[]="合格证";}
             if($carsInfo['p_invoice']==1){$otherInfo[]="发票";}
@@ -275,6 +294,7 @@ class PhotoController extends Controller
             $videosList = getSubByKey($videosUrl,'video_path');
             $carsInfo['videos_list'] =  $videosList;
             $carsInfo['head_img'] = $shareId ? Db::name('member')->where('id',$shareId)->value('default_logo') :'';
+            $carsInfo['is_transfer'] = $is_transfer>0 ? 1 :0;
             $data = array(
                 'code' => 0,
                 'msg' => '获取成功',
@@ -304,7 +324,8 @@ class PhotoController extends Controller
         if(!$pId){
             return json(config('weixin.common')[2]);//缺少必要参数
         }
-        $carsInfo = Db::name('cars')->where('p_id',$pId)->find();
+        $where = "from_type = 1 and p_id = {$pId}";
+        $carsInfo = Db::name('cars')->where($where)->find();
         if($carsInfo){
             $carsInfo['p_price'] = $carsInfo['p_price'] ? $carsInfo['p_price']/10000 : 0;
             $carsInfo['brand_name'] = Db::name('cars_brand')->where("is_show = 0 and id ={$carsInfo['brand_id']}")->value('name');
@@ -325,7 +346,38 @@ class PhotoController extends Controller
             return json($data);
         }
     }
+    /**
+     * 获取分享朋友圈的图片
+     *
+     * @param  int  $id
+     * @return \think\Response
+     */
+    public function getShareImgs()
+    {
+        $pId = request()->param('p_id');//机源id
+        if(!$pId){
+            return json(config('weixin.common')[2]);//缺少必要参数
+        }
+        $imagesUrl = Db::name('cars_images')->where('p_id',$pId)->field('image_path')->select();
 
+        if($imagesUrl){
+            //转化成一维数组
+            $imagesList = getSubByKey($imagesUrl,'image_path');
+            $carsInfo['images_list'] =  $imagesList;
+            $data = array(
+                'code' => 0,
+                'msg' => '获取成功',
+                'data' => $carsInfo
+            );
+            return json($data);
+        }else{
+            $data = array(
+                'code' => 1,
+                'msg' => '获取失败'
+            );
+            return json($data);
+        }
+    }
     /**
      * 更改点赞数
      *
@@ -346,7 +398,7 @@ class PhotoController extends Controller
         if($uid == $shareId){
             return json(config('weixin.photo')[4]);
         }
-        $where = "pid = {$pId} and uid = {$uid}";
+        $where = "type = 2 and pid = {$pId} and uid = {$uid}";
         $ret = Db::name('cars_thumbs_record')->where($where)->field('id')->find();
         if($status == 2){//点赞
             if($ret){
@@ -359,7 +411,8 @@ class PhotoController extends Controller
                     'addtime' => time(),
                     'ip' => request()->ip(),
                     'user_agent' =>request()->header('user-agent'),
-                    'from' => 1 //1是挖盟小程序
+                    'from' => 1, //1是挖盟小程序
+                    'type' => 2 //2是点赞
                 );
                 $res = Db::name('cars_thumbs_record')->insert($data);
                 if($res){
@@ -399,13 +452,167 @@ class PhotoController extends Controller
     }
 
     /**
-     * 删除指定资源
+     * 转存功能
      *
-     * @param  int  $id
+     * @param
      * @return \think\Response
      */
-    public function delete($id)
+    public function transferDeposit()
     {
-        //
+        $tokenInfo = request()->param('tokenInfo');
+        $shareId = request()->param('share_id');
+        $pId = request()->param('p_id');
+        $uid = $tokenInfo['u_id'];
+        if(!$shareId || !$pId || !$uid){
+            return json(config('weixin.common')[2]);//缺少必要参数
+        }
+        $filed = "p_id,uid,p_hits,p_tel,thumbs_up,p_username,p_tel,p_addtime,p_listtime,transfer_deposit";
+        $carsWhere = "from_type = 1 and p_id = {$pId}";
+        $carsInfo = Db::name('cars')->where($carsWhere)->field($filed,true)->find();//获取车源信息
+        if(!$carsInfo){
+            return json(config('weixin.photo')[5]);
+        }
+        $carsInfo['p_addtime'] = time();
+        $carsInfo['p_listtime'] = time();
+        $carsInfo['uid'] = $uid;
+        $memberInfo = Db::name('member')->where("id",$uid)->field('mobilephone,legalname')->find();
+        if(!$memberInfo){
+            return json(config('weixin.common')[9]);
+        }
+        $carsInfo['p_username'] = $memberInfo['legalname'];
+        $carsInfo['p_tel'] = $memberInfo['mobilephone'];
+        $newPid = Db::name('cars')->insertGetId($carsInfo);//插入机源数据,并返回车源id
+       if(!$newPid){
+           return json(config('weixin.common')[6]);
+       }
+        //获取图片信息
+        $imgsInfo = Db::name('cars_images')->where('p_id',$pId)->field('p_id,id,create_time',true)->select();
+        foreach ($imgsInfo as $k=>$val){
+            $imgsInfo[$k]['p_id'] = $newPid;
+            $imgsInfo[$k]['create_time'] = time();
+        }
+        //插入图片
+        Db::name('cars_images')->insertAll($imgsInfo);
+        //获取视频信息
+        $carsVideoInfo = Db::name('cars_video')->where('p_id',$pId)->field('p_id,id,create_time',true)->select();
+        foreach ($carsVideoInfo as $n=>$v){
+            $carsVideoInfo[$n]['p_id'] = $newPid;
+            $carsVideoInfo[$n]['create_time'] = time();
+        }
+        //插入图片
+        Db::name('cars_images')->insertAll($imgsInfo);
+        $data = array(
+            'pid' => intval($pId),
+            'uid' => intval($uid),
+            'shareuid' => intval($shareId),//分享者id
+            'addtime' => time(),
+            'ip' => request()->ip(),
+            'user_agent' =>request()->header('user-agent'),
+            'from' => 1, //1是挖盟小程序
+            'type' => 3 //3是转存
+        );
+        $res = Db::name('cars_thumbs_record')->insert($data);
+        if($res){
+            return json(array('code'=>0,'msg'=>'转存成功！'));
+        }else{
+            return json(config('weixin.photo')[3]);//操作失败
+        }
+
+
     }
+    /**
+     * 改变机源的售出状态
+     *
+     * @param
+     * @return \think\Response
+     */
+    public function changeCarsSoldStatus()
+    {
+        $tokenInfo = request()->param('tokenInfo');
+        $status = request()->param('p_is_sold_out');
+        $pId = request()->param('p_id');
+        $uid = $tokenInfo['u_id'];
+        if(!$pId || !$uid){
+            return json(config('weixin.common')[2]);//缺少必要参数
+        }
+        $status = intval($status);
+        $where = "from_type = 1 and p_id = {$pId} and uid = {$uid}";
+        $res = Db::name('cars')->where($where)->update(array('p_is_sold_out'=>$status));
+        if($res){
+            $data = array(
+                'code'=>0,
+                'msg'=>'更新成功！',
+                'p_is_sold_out' => $status
+            );
+            return json($data);
+        }else{
+            return json(config('weixin.photo')[3]);//操作失败
+        }
+
+
+    }
+    /**
+     * 获取浏览列表,转存列表，喜欢列表
+     *
+     * @param
+     * @return \think\Response
+     */
+    public function accordingToTypeGetList()
+    {
+        $tokenInfo = request()->param('tokenInfo');
+        $pId = request()->param('p_id');
+        $type = request()->param('type');
+        $uid = $tokenInfo['u_id'];
+        $p = request()->param('p');
+        if(!$pId || !$uid ||!$type){
+            return json(config('weixin.common')[2]);//缺少必要参数
+        }
+        $p = $p ? intval($p) : 1;//分页，默认是1
+        $limit = 10;
+        $offset = ($p-1)*$limit;
+        $thumbsRecordWhere = "pid = {$pId} and type = {$type} and shareuid = {$uid}";
+        $thumbsRecordInfo = Db::name('cars_thumbs_record')->where($thumbsRecordWhere)->field('pid,uid,addtime')->order('addtime desc')->limit($offset,$limit)->select();//获取车源信息
+
+        if(!$thumbsRecordInfo){
+            $data = array(
+                'code' => 1,
+                'msg' => '没有更多数据了！'
+            );
+            return json($data);
+        }
+       //拼接用户头像，昵称，相册名称
+        $p_id_str = getSubStrByKey($thumbsRecordInfo, 'pid');
+        $u_id_str = getSubStrByKey($thumbsRecordInfo, 'uid');
+        $memberWeixinInfo = Db::name('member_weixin')->where("uid in($u_id_str)")->field('uid,nickname,headimgurl')->select();
+        if(!$memberWeixinInfo){
+            return json(config('weixin.common')[10]);
+        }
+        $memberInfo = Db::name('member')->where("is_del = 0 and id in($u_id_str)")->field('id,default_logo')->select();
+        if(!$memberInfo){
+            return json(config('weixin.common')[9]);
+        }
+        $carsInfo = Db::name('cars')->where("from_type = 1 and p_id in($p_id_str)")->field('p_id,p_allname')->select();
+        if(!$carsInfo){
+            return json(config('weixin.photo')[5]);
+        }
+        //对应转化
+        $memberWeixinArr = getSubValByKey($memberWeixinInfo, 'uid', 'headimgurl','nickname');
+        $memberArr = getSubValByKey($memberInfo, 'id', 'default_logo');
+        $carsArr = getSubValByKey($carsInfo, 'p_id', 'p_allname');
+        foreach ($thumbsRecordInfo as $k=>$value){
+            $thumbsRecordInfo[$k]['nickname'] = $memberWeixinArr[$value['uid']][1];
+            $thumbsRecordInfo[$k]['head_img'] = $memberArr[$value['uid']][0] ? $memberArr[$value['uid']][0] : $memberWeixinArr[$value['uid']][0];
+            $thumbsRecordInfo[$k]['p_allname'] = $carsArr[$value['pid']][0];
+            $thumbsRecordInfo[$k]['create_time'] = friendlyTimeShow($value['addtime']);
+        }
+        $data = array(
+            'code' => 0,
+            'msg' => '获取成功',
+            'data' => $thumbsRecordInfo
+        );
+            return json($data);
+
+    }
+
+
 }

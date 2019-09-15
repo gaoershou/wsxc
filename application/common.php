@@ -89,7 +89,50 @@ function getSubByKey($pArray, $pKey = '', $pCondition = '')
         return false;
     }
 }
-
+/**
+ * 取一个二维数组中的每个数组的固定的键知道的值来拼接成一个字符串.
+ *
+ * @param $pArray 一个二维数组
+ * @param string $pKey 数组的键的名称
+ * @param string $pCondition
+ * @return array|bool
+ */
+function getSubStrByKey($pArray, $pKey = '', $pCondition = '')
+{
+    $result = array();
+    if (is_array($pArray)) {
+        foreach ($pArray as $temp_array) {
+            if (is_object($temp_array)) {
+                $temp_array = (array) $temp_array;
+            }
+            if (('' != $pCondition && $temp_array[$pCondition[0]] == $pCondition[1]) || '' == $pCondition) {
+                $result[] = ('' == $pKey) ? $temp_array : isset($temp_array[$pKey]) ? $temp_array[$pKey] : '';
+            }
+        }
+        return implode(',',$result);
+    } else {
+        return false;
+    }
+}
+/**
+ * 取一个二维数组中的每个数组的固定的字段知道的值来拼接成一个数组.
+ *
+ * @param $pArray 一个二维数组
+ * @param string $pKey 数组的键的名称
+ * @param string $pCondition
+ * @return array|bool
+ */
+function getSubValByKey($pArray, $pKey1 = '', $pKey2 = '',$pKey3 = '')
+{
+    $result = array();
+    foreach ($pArray as $val){
+        $result[$val[$pKey1]][] = $val[$pKey2];
+        if($pKey3){
+            $result[$val[$pKey1]][] = $val[$pKey3];
+        }
+    }
+    return $result;
+}
 /**
  * 稳定 二维数组按字段排序排序
  *
@@ -239,4 +282,151 @@ function wipeZero($num){
     $num = strrev((float)sprintf("%.2f", $num));
     $num = strrev($num);
     return $num;
+}
+/*
+ * 友好的时间展示
+ */
+function friendlyTimeShow($sTime, $type = 'normal',$alt = 'false'){
+    if (!$sTime) {
+        return '';
+    }
+    //sTime=源时间，cTime=当前时间，dTime=时间差
+    $cTime = time();
+    $dTime = $cTime - $sTime;
+    $dDay = intval(date('z', $cTime)) - intval(date('z', $sTime));
+    //$dDay     =   intval($dTime/3600/24);
+    $dYear = intval(date('Y', $cTime)) - intval(date('Y', $sTime));
+    //normal：n秒前，n分钟前，n小时前，日期
+    if ($type == 'normal') {
+        if ($dTime < 60) {
+            if ($dTime < 10) {
+                return '刚刚';    //by yangjs
+            } else {
+                return intval(floor($dTime / 10) * 10).'秒前';
+            }
+        } elseif ($dTime < 3600) {
+            return intval($dTime / 60).'分钟前';
+            //今天的数据.年份相同.日期相同.
+        } elseif ($dYear == 0 && $dDay == 0) {
+            //return intval($dTime/3600)."小时前";
+            return '今天'.date('H:i', $sTime);
+        } elseif ($dYear == 0) {
+            return date('m月d日 H:i', $sTime);
+        } else {
+            return date('Y-m-d H:i', $sTime);
+        }
+    } elseif ($type == 'mohu') {
+        if ($dTime < 60) {
+            return $dTime.'秒前';
+        } elseif ($dTime < 3600) {
+            return intval($dTime / 60).'分钟前';
+        } elseif ($dTime >= 3600 && $dDay == 0) {
+            return intval($dTime / 3600).'小时前';
+        } elseif ($dDay > 0 && $dDay <= 7) {
+            return intval($dDay).'天前';
+        } elseif ($dDay > 7 && $dDay <= 30) {
+            return intval($dDay / 7).'周前';
+        } elseif ($dDay > 30) {
+            return intval($dDay / 30).'个月前';
+        }
+        //full: Y-m-d , H:i:s
+    } elseif ($type == 'full') {
+        return date('Y-m-d , H:i:s', $sTime);
+    } elseif ($type == 'ymd') {
+        return date('Y-m-d', $sTime);
+    } else {
+        if ($dTime < 60) {
+            return $dTime.'秒前';
+        } elseif ($dTime < 3600) {
+            return intval($dTime / 60).'分钟前';
+        } elseif ($dTime >= 3600 && $dDay == 0) {
+            return intval($dTime / 3600).'小时前';
+        } elseif ($dYear == 0) {
+            return date('Y-m-d H:i:s', $sTime);
+        } else {
+            return date('Y-m-d H:i:s', $sTime);
+        }
+    }
+
+}
+/**
+ * 判断手机是否存在，并替换
+ *
+ * @param $content
+ * @return mixed
+ */
+function checkStringMobile($content) {
+    $content = preg_replace('/([0-9]{11,})|([0-9]{3,4}-[0-9]{7,10})|([0-9]{3,4}-[0-9]{2,5}-[0-9]{2,5})/', '', $content);
+    return $content;
+}
+/**
+ * 自定义base64编码
+ */
+function myBase64Encode(&$str) {
+    $Bstr_base64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789()@';
+
+    $len = strlen($str);
+    $res = '';
+    $binStr = '';
+
+    for ($i = 0; $i < $len; $i++)
+    {
+        $nChar = substr($str, $i, 1);
+        $binNchar = ord($nChar);
+        $binStr .= substr('00000000' . decbin($binNchar), -8);
+    }
+
+    $binStrLen = strlen($binStr);
+    $j = ($binStrLen%6) ? (6 - $binStrLen%6) : 0;
+
+    $i = 0;
+    while ($i < $j)
+    {
+        $binStr .= '0';
+        $i++;
+    }
+
+    $binLength = ceil($binStrLen/6);
+    for ($i = 0; $i < $binLength; $i++)
+    {
+        $deChar = substr($binStr, $i*6, 6);
+        $res	.= $Bstr_base64[bindec($deChar)];
+    }
+
+    $j = $len%3 > 0 ? (3-$len%3) : 0;
+    $i = 0;
+    while($i < $j)
+    {
+        $res .= "@";
+        $i++;
+    }
+    return $res;
+}
+/*
+ * 自定义base64解码
+ */
+function myBase64Decode(&$str) {
+    $Bstr_base64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789()@';
+    $len = strlen($str);
+    if ($len % 4 !=0)
+        return '';
+    $res = $bins = '';
+    for ($i = 0; $i < $len; $i++)
+    {
+        $nChar = substr($str, $i, 1);
+        if ($nChar == '@')
+            break;
+        $oldValue = strpos($Bstr_base64, $nChar);
+        $binValue = substr('000000' . decbin($oldValue), -6);
+        $bins .= $binValue;
+
+        if (strlen($bins) >= 8)
+        {
+            $deChar = substr($bins, 0, 8);
+            $bins = substr($bins, 8);
+            $res .= chr(bindec($deChar));
+        }
+    }
+
+    return $res;
 }
