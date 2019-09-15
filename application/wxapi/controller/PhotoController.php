@@ -324,7 +324,8 @@ class PhotoController extends Controller
         if(!$pId){
             return json(config('weixin.common')[2]);//缺少必要参数
         }
-        $carsInfo = Db::name('cars')->where('p_id',$pId)->find();
+        $where = "from_type = 1 and p_id = {$pId}";
+        $carsInfo = Db::name('cars')->where($where)->find();
         if($carsInfo){
             $carsInfo['p_price'] = $carsInfo['p_price'] ? $carsInfo['p_price']/10000 : 0;
             $carsInfo['brand_name'] = Db::name('cars_brand')->where("is_show = 0 and id ={$carsInfo['brand_id']}")->value('name');
@@ -345,7 +346,38 @@ class PhotoController extends Controller
             return json($data);
         }
     }
+    /**
+     * 获取分享朋友圈的图片
+     *
+     * @param  int  $id
+     * @return \think\Response
+     */
+    public function getShareImgs()
+    {
+        $pId = request()->param('p_id');//机源id
+        if(!$pId){
+            return json(config('weixin.common')[2]);//缺少必要参数
+        }
+        $imagesUrl = Db::name('cars_images')->where('p_id',$pId)->field('image_path')->select();
 
+        if($imagesUrl){
+            //转化成一维数组
+            $imagesList = getSubByKey($imagesUrl,'image_path');
+            $carsInfo['images_list'] =  $imagesList;
+            $data = array(
+                'code' => 0,
+                'msg' => '获取成功',
+                'data' => $carsInfo
+            );
+            return json($data);
+        }else{
+            $data = array(
+                'code' => 1,
+                'msg' => '获取失败'
+            );
+            return json($data);
+        }
+    }
     /**
      * 更改点赞数
      *
@@ -488,7 +520,37 @@ class PhotoController extends Controller
 
 
     }
+    /**
+     * 改变机源的售出状态
+     *
+     * @param
+     * @return \think\Response
+     */
+    public function changeCarsSoldStatus()
+    {
+        $tokenInfo = request()->param('tokenInfo');
+        $status = request()->param('p_is_sold_out');
+        $pId = request()->param('p_id');
+        $uid = $tokenInfo['u_id'];
+        if(!$pId || !$uid){
+            return json(config('weixin.common')[2]);//缺少必要参数
+        }
+        $status = intval($status);
+        $where = "from_type = 1 and p_id = {$pId} and uid = {$uid}";
+        $res = Db::name('cars')->where($where)->update(array('p_is_sold_out'=>$status));
+        if($res){
+            $data = array(
+                'code'=>0,
+                'msg'=>'更新成功！',
+                'p_is_sold_out' => $status
+            );
+            return json($data);
+        }else{
+            return json(config('weixin.photo')[3]);//操作失败
+        }
 
+
+    }
     /**
      * 获取浏览列表,转存列表，喜欢列表
      *

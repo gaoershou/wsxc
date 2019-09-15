@@ -349,3 +349,84 @@ function friendlyTimeShow($sTime, $type = 'normal',$alt = 'false'){
     }
 
 }
+/**
+ * 判断手机是否存在，并替换
+ *
+ * @param $content
+ * @return mixed
+ */
+function checkStringMobile($content) {
+    $content = preg_replace('/([0-9]{11,})|([0-9]{3,4}-[0-9]{7,10})|([0-9]{3,4}-[0-9]{2,5}-[0-9]{2,5})/', '', $content);
+    return $content;
+}
+/**
+ * 自定义base64编码
+ */
+function myBase64Encode(&$str) {
+    $Bstr_base64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789()@';
+
+    $len = strlen($str);
+    $res = '';
+    $binStr = '';
+
+    for ($i = 0; $i < $len; $i++)
+    {
+        $nChar = substr($str, $i, 1);
+        $binNchar = ord($nChar);
+        $binStr .= substr('00000000' . decbin($binNchar), -8);
+    }
+
+    $binStrLen = strlen($binStr);
+    $j = ($binStrLen%6) ? (6 - $binStrLen%6) : 0;
+
+    $i = 0;
+    while ($i < $j)
+    {
+        $binStr .= '0';
+        $i++;
+    }
+
+    $binLength = ceil($binStrLen/6);
+    for ($i = 0; $i < $binLength; $i++)
+    {
+        $deChar = substr($binStr, $i*6, 6);
+        $res	.= $Bstr_base64[bindec($deChar)];
+    }
+
+    $j = $len%3 > 0 ? (3-$len%3) : 0;
+    $i = 0;
+    while($i < $j)
+    {
+        $res .= "@";
+        $i++;
+    }
+    return $res;
+}
+/*
+ * 自定义base64解码
+ */
+function myBase64Decode(&$str) {
+    $Bstr_base64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789()@';
+    $len = strlen($str);
+    if ($len % 4 !=0)
+        return '';
+    $res = $bins = '';
+    for ($i = 0; $i < $len; $i++)
+    {
+        $nChar = substr($str, $i, 1);
+        if ($nChar == '@')
+            break;
+        $oldValue = strpos($Bstr_base64, $nChar);
+        $binValue = substr('000000' . decbin($oldValue), -6);
+        $bins .= $binValue;
+
+        if (strlen($bins) >= 8)
+        {
+            $deChar = substr($bins, 0, 8);
+            $bins = substr($bins, 8);
+            $res .= chr(bindec($deChar));
+        }
+    }
+
+    return $res;
+}

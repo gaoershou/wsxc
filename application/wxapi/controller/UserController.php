@@ -193,13 +193,19 @@ class UserController extends Controller
 
  public function getUserInfo(){//获取用户信息
      $flag = request()->param('is_init');//0为新增进入，1为更改进入
-     if(!$flag){
-         return json(config('weixin.common')[2]);
+     //做验证
+     $validateData = [
+         'flag' =>  $flag,
+     ];
+     $validate = Validate::make([
+         'flag' => 'require',
+
+     ]);
+     if(!$validate->check($validateData)){//验证不通过
+         return json(array('code'=>-1,'msg'=>$validate->getError()));
      }
+
      $tokenInfo = request()->param('tokenInfo');
-     if(!$flag){
-         return json(config('weixin.common')[2]);
-     }
      if($flag>0){//
          $data = Db::name('member')->where('id',$tokenInfo['u_id'])->field('aid,cid,default_logo,legalname,mobilephone,main_brand,receiver_type')->find();
          if(!$data){
