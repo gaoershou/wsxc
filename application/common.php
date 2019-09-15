@@ -430,3 +430,106 @@ function myBase64Decode(&$str) {
 
     return $res;
 }
+/*
+ * 生成1张图的车源图片
+ */
+function makeCarsBackGroundOne($carsInfo,$img_list,$nickname) {
+    //创建目录
+    $save_path = "../upload/gjcars/";
+    $file_ext = 'jpg';
+    if (!file_exists($save_path)) {
+        mkdir($save_path);
+    }
+    $p_allname = $carsInfo['p_allname'];//名称
+    $p_year = $carsInfo['p_year'] > 0 ? $carsInfo['p_year'].'年-' : '年限不详-';//年限
+    $p_hours_info = $carsInfo['p_hours'] ? $carsInfo['p_hours'] : '小时数不详';//小时数
+    $p_show_id = '编号：'.$carsInfo['p_id'];//设备编号
+    $userCreditLevel = creditAct::getUserLevel();
+    $userDefaultYear = ProductConfig::$default_dealer_year;
+
+    $user_name = $nickname ? $nickname : '';
+    $user_level = '/data/www/web/static/img/levelico/'.$userCreditLevel[$carsInfo['user_info']['level']]['image']; //用户等级
+    //联盟会员第几年
+    $user_admission = '/data/www/web/static/img/dealerico/'.$userDefaultYear[$carsInfo['user_info']['admission']]['ico']; //联盟会员
+    //用户勋章 只取一个
+    $medalUserObj = new MedalUserMod();
+    $user_medal = $medalUserObj->getUserMonthInfo($carsInfo['user_info']['month_info']);
+
+    $rand_str = md5($carsInfo['p_id'].$now_time);
+    //新文件名
+    $new_file_name =  count($img_list) . '_' .$rand_str . '.' . $file_ext;
+    $file_path = $save_path . $new_file_name;
+    @chmod($file_path, 0644);
+    $file_url = $save_path . $new_file_name;
+    $tmp_path =  $file_url;
+
+
+    //海报背景
+    $poster_path = settingsAct::getSettingsByK('cars_poster_one');//1图
+    $poster_bj_path = @imagecreatefromstring(utilLib::fileGetContent($poster_path));
+    //字体路径
+    $font_path = settingsAct::getSettingsByK('poster_config_font_url');//微软雅黑字体
+    //创建画布
+    $im = imagecreatetruecolor(750, 1334);
+    //颜色值
+
+    $black = imagecolorallocate($im, 63, 63, 63);//黑色398 116
+    $huise = imagecolorallocate($im, 190, 190, 190);//黑色398 116
+
+    $carsImgList = $img_list;
+
+    $cars_img_one = $carsImgList[0];
+    //$img_size_one = utilLib::getImageSize($cars_img_one, 'curl');
+
+    list($max_width, $max_height) = getimagesize($cars_img_one);
+
+    logLib::writeLog($max_width.'==='.$max_height, 'makeMemberHeadImg.log');
+    //产品图片创建1图
+    $cars_thumb_one = imagecreatetruecolor(690, 630);
+    $cars_source_one = @imagecreatefromstring(utilLib::fileGetContent($cars_img_one));
+    //imagecopyresampled($cars_thumb_one, $cars_source_one, 0, 0, 0, 0, 690, 630, $img_size_one['width'], $img_size_one['height']);
+    imagecopyresampled($cars_thumb_one, $cars_source_one, 0, 0, 0, 0, 690, 630, $max_width, $max_height);
+
+    //车源名称
+    imagettftext($poster_bj_path, 30, 0, 28, 130, $black, $font_path, $p_allname);
+    //年限小时数
+    imagettftext($poster_bj_path, 28, 0, 28, 210, $huise, $font_path, $p_year .'-'. $p_hours_info);
+    //设备编号
+    imagettftext($poster_bj_path, 28, 0, 520, 210, $huise, $font_path, $p_show_id);
+    //店铺名称
+    imagettftext($poster_bj_path, 30, 0, 60, 1100, $black, $font_path, $user_name);
+
+    //1图
+    imagecopy($poster_bj_path, $cars_thumb_one, 28, 280, 0, 0, 690, 630);
+
+    $src_im = imagecreatefrompng($user_level);
+    $src_info = getimagesize($user_level);
+    imagecopy($poster_bj_path, $src_im, 60, 1130, 0, 0, $src_info[0], $src_info[1]);
+
+    $admission_src_im = imagecreatefrompng($user_admission);
+    $admission_src_info = getimagesize($user_admission);
+    imagecopy($poster_bj_path, $admission_src_im, 140, 1130, 0, 0, $admission_src_info[0], $admission_src_info[1]);
+
+    $meda_src_im = imagecreatefrompng($user_medal);
+    $meda_src_info = getimagesize($user_medal);
+    imagecopy($poster_bj_path, $meda_src_im, 280, 1130, 0, 0, $meda_src_info[0], $meda_src_info[1]);
+
+    //生产图片
+    imagejpeg($poster_bj_path, $tmp_path, 100);
+    //释放
+    imagedestroy($poster_bj_path);
+    logLib::writeLog($tmp_path, 'makeMemberHeadImg.log');
+    return $tmp_path;
+}
+/*
+ * 生成4张图的车源图片
+ */
+function makeCarsBackGroundFour(&$str) {
+
+}
+/*
+ * 生成9张图的车源图片
+ */
+function makeCarsBackGroundNine(&$str) {
+
+}

@@ -28,6 +28,7 @@ Route::group('wxapi', function () {
     Route::post('getPhotoDetailsInfo', 'wxapi/Photo/getPhotoDetailsInfo');//获取相册详情
     Route::post('updateThumbsUpNums', 'wxapi/Photo/updateThumbsUpNums');//点赞和撤销点赞
     Route::post('transferDeposit', 'wxapi/Photo/transferDeposit');//转存功能
+    Route::post('getShareImgs', 'wxapi/Photo/getShareImgs');//获取分享朋友圈的图片
     Route::post('accordingToTypeGetList', 'wxapi/Photo/accordingToTypeGetList');//根据不同的类型展示不同的列表
     Route::post('changeCarsSoldStatus', 'wxapi/Photo/changeCarsSoldStatus');//改变车源销售状态
 })->middleware('checkToken')->allowCrossDomain();

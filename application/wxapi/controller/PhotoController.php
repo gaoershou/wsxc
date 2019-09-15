@@ -359,11 +359,64 @@ class PhotoController extends Controller
             return json(config('weixin.common')[2]);//缺少必要参数
         }
         $imagesUrl = Db::name('cars_images')->where('p_id',$pId)->field('image_path')->select();
-
+       $carsInfo = array(
+           'p_id' => $pId
+       );
         if($imagesUrl){
             //转化成一维数组
             $imagesList = getSubByKey($imagesUrl,'image_path');
             $carsInfo['images_list'] =  $imagesList;
+            $data = array(
+                'code' => 0,
+                'msg' => '获取成功',
+                'data' => $carsInfo
+            );
+            return json($data);
+        }else{
+            $data = array(
+                'code' => 1,
+                'msg' => '获取失败'
+            );
+            return json($data);
+        }
+    }
+    /**
+     *
+     *保存页面
+     * @param  int  $id
+     * @return \think\Response
+     */
+    public function addPageSavePic()
+    {
+        $pId = request()->param('p_id');//机源id
+        $page = request()->param('page');//机源id
+        $pic_list = request()->param('pic_list');//图片列表
+        if(!$pId || !$page || !$pic_list){
+            return json(config('weixin.common')[2]);//缺少必要参数
+        }
+        $where = "from_type = 1 and p_id = {$pId}";
+        $imageArr = explode(',',$pic_list);//分割成数组
+        if(count($imageArr) == 1 || count($imageArr) == 4 || count($imageArr) == 9) {//判断只生成1,4,9张图片
+            $img_list = $imageArr;
+        } elseif(count($imageArr) > 1 && count($imageArr) < 4) {
+            $img_list = array_slice($imageArr, 0, 1);
+        } elseif(count($imageArr) > 4 && count($imageArr) < 9) {
+            $img_list = array_slice($imageArr, 0, 4);
+        } elseif(count($imageArr) > 9) {
+            $img_list = array_slice($imageArr, 0, 9);
+        }
+        $carsInfo = Db::name('cars')->where($where)->field('p_allname,p_year,p_hours,p_details,p_id')->find();
+        if($carsInfo){
+
+            if(count($img_list) == 1) {
+                $carsBackGround = makeCarsBackGroundOne($carsInfo, $img_list, $rand_str);
+            }
+            if(count($img_list) == 4) {
+                $carsBackGround = makeCarsBackGroundFour($p_id, $img_list, $rand_str);
+            }
+            if(count($img_list) == 9) {
+                $carsBackGround = makeCarsBackGroundNine($p_id, $img_list, $rand_str);
+            }
             $data = array(
                 'code' => 0,
                 'msg' => '获取成功',
