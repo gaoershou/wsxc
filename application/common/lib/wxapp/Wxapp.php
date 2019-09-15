@@ -151,6 +151,40 @@ class Wxapp {
         return sha1($randChar . $timestamp . $salt);
     }
     /**
+     * 获取小程序码B方法
+     *
+     * @param $scene
+     * @param $page
+     * @param int $width
+     * @return string
+     */
+    public function createQrCode($scene, $page, $width=200) {
+        $accessTokenInfo = self::getAccessToken();
+        $accessTokenData = json_decode($accessTokenInfo,true);
+        $accessToken = $accessTokenData['access_token'];
+        $url = "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=".$accessToken;
+        $post_data='{"scene":"'.$scene.'", "page":"'.$page.'", "width":'.$width.'}';
+        $res = http_request($url, $post_data);
+        $file_name = $_SERVER['DOCUMENT_ROOT'].'/upload/'.$scene.'.jpg';
+        file_put_contents($file_name, $res);
+        return $file_name;
+    }
+    /**
+     * 获取小程序码access_token
+     *
+     * @param $scene
+     * @param $page
+     * @param int $width
+     * @return string
+     */
+    public static function getAccessToken() {
+        $appid = self::$appid;
+        $secret = self::$secrect;
+        $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$appid}&secret={$secret}";
+        return http_request($url);
+
+    }
+    /**
      * 日志记录
      *
      * @param $log_content

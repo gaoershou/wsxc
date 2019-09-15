@@ -251,23 +251,25 @@ class CommonController extends Controller
   * 代码测试
   */
     public function test(){
-        $where = 'from_type = 1 and uid = 2781';
-        $offset = 0;
-        $limit = 10;
-        $carsListsInfo = Db::name('cars')->where($where)->field('p_id,p_type,p_allname,p_price')->limit($offset,$limit)->select();
-        if($carsListsInfo){//存在
-            $p_id = getSubByKey($carsListsInfo, 'p_id');
-            $p_id_str = implode(',',$p_id);
-          $carsImgsInfo = Db::name('cars_images')->where("p_id in({$p_id_str})")->field('image_path,p_id,count(image_path) as num')->group('p_id')->select();
-            $array = array();
-            foreach ($carsImgsInfo as $val){
-                $array[$val['p_id']][] =$val['image_path'];
-                $array[$val['p_id']][] =$val['num'];
-            }
-            var_dump($array);die();
-
-        }
-        var_dump($carsListsInfo);
+//        $where = 'from_type = 1 and uid = 2781';
+//        $offset = 0;
+//        $limit = 10;
+//        $carsListsInfo = Db::name('cars')->where($where)->field('p_id,p_type,p_allname,p_price')->limit($offset,$limit)->select();
+//        if($carsListsInfo){//存在
+//            $p_id = getSubByKey($carsListsInfo, 'p_id');
+//            $p_id_str = implode(',',$p_id);
+//          $carsImgsInfo = Db::name('cars_images')->where("p_id in({$p_id_str})")->field('image_path,p_id,count(image_path) as num')->group('p_id')->select();
+//            $array = array();
+//            foreach ($carsImgsInfo as $val){
+//                $array[$val['p_id']][] =$val['image_path'];
+//                $array[$val['p_id']][] =$val['num'];
+//            }
+//            var_dump($array);die();
+//
+//        }
+//        var_dump($carsListsInfo);
+        $root = $_SERVER['DOCUMENT_ROOT'];
+        var_dump($root);
     }
 
     /**

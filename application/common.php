@@ -27,7 +27,7 @@ function http_request($url,$data=''){
     $result = curl_exec($curl);
     if ($result === false) {
 
-        $result = 'put file to oss - curl error :' . curl_error($curl_handle);
+        $result = 'put file to oss - curl error :' . curl_error($curl);
     }
     curl_close($curl);
     return $result;
@@ -435,26 +435,17 @@ function myBase64Decode(&$str) {
  */
 function makeCarsBackGroundOne($carsInfo,$img_list,$nickname) {
     //创建目录
-    $save_path = "../upload/gjcars/";
+    $save_path = $_SERVER['DOCUMENT_ROOT']."/upload/gjcars/";
     $file_ext = 'jpg';
     if (!file_exists($save_path)) {
         mkdir($save_path);
     }
     $p_allname = $carsInfo['p_allname'];//名称
-    $p_year = $carsInfo['p_year'] > 0 ? $carsInfo['p_year'].'年-' : '年限不详-';//年限
+    $p_year = $carsInfo['p_year'] > 0 ? $carsInfo['p_year'].'年' : '年限不详';//年限
     $p_hours_info = $carsInfo['p_hours'] ? $carsInfo['p_hours'] : '小时数不详';//小时数
     $p_show_id = '编号：'.$carsInfo['p_id'];//设备编号
-    $userCreditLevel = creditAct::getUserLevel();
-    $userDefaultYear = ProductConfig::$default_dealer_year;
-
     $user_name = $nickname ? $nickname : '';
-    $user_level = '/data/www/web/static/img/levelico/'.$userCreditLevel[$carsInfo['user_info']['level']]['image']; //用户等级
-    //联盟会员第几年
-    $user_admission = '/data/www/web/static/img/dealerico/'.$userDefaultYear[$carsInfo['user_info']['admission']]['ico']; //联盟会员
-    //用户勋章 只取一个
-    $medalUserObj = new MedalUserMod();
-    $user_medal = $medalUserObj->getUserMonthInfo($carsInfo['user_info']['month_info']);
-
+    $now_time = time();
     $rand_str = md5($carsInfo['p_id'].$now_time);
     //新文件名
     $new_file_name =  count($img_list) . '_' .$rand_str . '.' . $file_ext;
@@ -463,30 +454,25 @@ function makeCarsBackGroundOne($carsInfo,$img_list,$nickname) {
     $file_url = $save_path . $new_file_name;
     $tmp_path =  $file_url;
 
-
     //海报背景
-    $poster_path = settingsAct::getSettingsByK('cars_poster_one');//1图
-    $poster_bj_path = @imagecreatefromstring(utilLib::fileGetContent($poster_path));
+    $poster_path = $_SERVER['DOCUMENT_ROOT']."/upload/head/cars_photo_poster_one.png";//1图
+    $poster_bj_path = @imagecreatefromstring(fileGetContent($poster_path));
     //字体路径
-    $font_path = settingsAct::getSettingsByK('poster_config_font_url');//微软雅黑字体
+    $font_path = $_SERVER['DOCUMENT_ROOT']."/upload/head/STXINGKA.TTF";//简体字
     //创建画布
     $im = imagecreatetruecolor(750, 1334);
     //颜色值
 
     $black = imagecolorallocate($im, 63, 63, 63);//黑色398 116
     $huise = imagecolorallocate($im, 190, 190, 190);//黑色398 116
-
     $carsImgList = $img_list;
-
     $cars_img_one = $carsImgList[0];
     //$img_size_one = utilLib::getImageSize($cars_img_one, 'curl');
-
     list($max_width, $max_height) = getimagesize($cars_img_one);
 
-    logLib::writeLog($max_width.'==='.$max_height, 'makeMemberHeadImg.log');
     //产品图片创建1图
     $cars_thumb_one = imagecreatetruecolor(690, 630);
-    $cars_source_one = @imagecreatefromstring(utilLib::fileGetContent($cars_img_one));
+    $cars_source_one = @imagecreatefromstring(fileGetContent($cars_img_one));
     //imagecopyresampled($cars_thumb_one, $cars_source_one, 0, 0, 0, 0, 690, 630, $img_size_one['width'], $img_size_one['height']);
     imagecopyresampled($cars_thumb_one, $cars_source_one, 0, 0, 0, 0, 690, 630, $max_width, $max_height);
 
@@ -496,40 +482,71 @@ function makeCarsBackGroundOne($carsInfo,$img_list,$nickname) {
     imagettftext($poster_bj_path, 28, 0, 28, 210, $huise, $font_path, $p_year .'-'. $p_hours_info);
     //设备编号
     imagettftext($poster_bj_path, 28, 0, 520, 210, $huise, $font_path, $p_show_id);
-    //店铺名称
+    //昵称
     imagettftext($poster_bj_path, 30, 0, 60, 1100, $black, $font_path, $user_name);
-
     //1图
-    imagecopy($poster_bj_path, $cars_thumb_one, 28, 280, 0, 0, 690, 630);
-
-    $src_im = imagecreatefrompng($user_level);
-    $src_info = getimagesize($user_level);
-    imagecopy($poster_bj_path, $src_im, 60, 1130, 0, 0, $src_info[0], $src_info[1]);
-
-    $admission_src_im = imagecreatefrompng($user_admission);
-    $admission_src_info = getimagesize($user_admission);
-    imagecopy($poster_bj_path, $admission_src_im, 140, 1130, 0, 0, $admission_src_info[0], $admission_src_info[1]);
-
-    $meda_src_im = imagecreatefrompng($user_medal);
-    $meda_src_info = getimagesize($user_medal);
-    imagecopy($poster_bj_path, $meda_src_im, 280, 1130, 0, 0, $meda_src_info[0], $meda_src_info[1]);
-
+    imagecopy($poster_bj_path, $cars_thumb_one, 28, 280, 0, 0, 690, 630);//拷贝图像的一部分
     //生产图片
     imagejpeg($poster_bj_path, $tmp_path, 100);
     //释放
     imagedestroy($poster_bj_path);
-    logLib::writeLog($tmp_path, 'makeMemberHeadImg.log');
     return $tmp_path;
 }
 /*
  * 生成4张图的车源图片
  */
-function makeCarsBackGroundFour(&$str) {
+function makeCarsBackGroundFour($carsInfo,$img_list,$nickname) {
 
 }
 /*
  * 生成9张图的车源图片
  */
-function makeCarsBackGroundNine(&$str) {
+function makeCarsBackGroundNine($carsInfo,$img_list,$nickname) {
 
+}
+
+/*
+ * 生成1张图和4张图的车源海报
+ */
+function makeCarsPoster($carsInfo,$img_list,$nickname) {
+
+}
+/*
+ * 生成9张图的车源海报
+ */
+function makeCarsNinePoster($carsInfo,$img_list,$nickname) {
+
+}
+
+/*
+ * 远程获取图片
+ */
+function fileGetContent($url, $use_include_path = false, $stream_context = null, $curl_timeout = 60){
+    if ($stream_context == null && preg_match('/^https?:\/\//', $url)){
+        $stream_context = @stream_context_create(array('http' => array('timeout' => $curl_timeout)));
+    }
+    if (in_array(ini_get('allow_url_fopen'), array('On', 'on', '1')) || !preg_match('/^https?:\/\//', $url)){
+        return @file_get_contents($url, $use_include_path, $stream_context);
+    } else if(function_exists('curl_init')) {
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($curl, CURLOPT_TIMEOUT, $curl_timeout);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+        $opts = stream_context_get_options($stream_context);
+        if (isset($opts['http']['method']) && strtolower($opts['http']['method']) == 'post')
+        {
+            curl_setopt($curl, CURLOPT_POST, true);
+            if (isset($opts['http']['content'])){
+                parse_str($opts['http']['content'], $datas);
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $datas);
+            }
+        }
+        $content = curl_exec($curl);
+        curl_close($curl);
+        return $content;
+    } else {
+        return false;
+    }
 }

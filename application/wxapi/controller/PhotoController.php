@@ -1,7 +1,7 @@
 <?php
 
 namespace app\wxapi\controller;
-
+use app\common\lib\wxapp\Wxapp;
 use think\Controller;
 use think\Request;
 use think\Db;
@@ -391,7 +391,10 @@ class PhotoController extends Controller
         $pId = request()->param('p_id');//机源id
         $page = request()->param('page');//机源id
         $pic_list = request()->param('pic_list');//图片列表
-        if(!$pId || !$page || !$pic_list){
+        $scene = request()->param('scene');//参数
+        $tokenInfo = request()->param('tokenInfo');//获取用户信息
+        $uid = $tokenInfo['u_id'];
+        if(!$pId || !$page || !$pic_list || !$uid){
             return json(config('weixin.common')[2]);//缺少必要参数
         }
         $where = "from_type = 1 and p_id = {$pId}";
@@ -406,20 +409,30 @@ class PhotoController extends Controller
             $img_list = array_slice($imageArr, 0, 9);
         }
         $carsInfo = Db::name('cars')->where($where)->field('p_allname,p_year,p_hours,p_details,p_id')->find();
+        $nickname = Db::name('member_weixin')->where('uid',$uid)->value('nickname');
         if($carsInfo){
 
             if(count($img_list) == 1) {
-                $carsBackGround = makeCarsBackGroundOne($carsInfo, $img_list, $rand_str);
+                $carsBackGround = makeCarsBackGroundOne($carsInfo, $img_list, $nickname);
             }
             if(count($img_list) == 4) {
-                $carsBackGround = makeCarsBackGroundFour($p_id, $img_list, $rand_str);
+                $carsBackGround = makeCarsBackGroundFour($pId, $img_list, $nickname);
             }
             if(count($img_list) == 9) {
-                $carsBackGround = makeCarsBackGroundNine($p_id, $img_list, $rand_str);
+                $carsBackGround = makeCarsBackGroundNine($pId, $img_list, $nickname);
             }
+            $weixinObj = $wxappObj = Wxapp::getInstance(config('weixin.wmxc_app'),config('weixin.wmxc_secrect'));
+            $wxCode = $weixinObj->createQrCode($scene,$page);
+            $imgCount = count($img_list);
+            if($imgCount == 1 || $imgCount == 4) {
+                $carsPost = makeCarsPoster($uid, $pId, $wxCode, $imgCount);
+            } else {
+                $carsPost = makeCarsNinePoster($uid, $pId, $wxCode, $imgCount);
+            }
+
             $data = array(
                 'code' => 0,
-                'msg' => '获取成功',
+                'msg' => '图片生成成功',
                 'data' => $carsInfo
             );
             return json($data);
