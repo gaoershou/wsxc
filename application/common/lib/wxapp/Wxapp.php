@@ -165,7 +165,7 @@ class Wxapp {
         $url = "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=".$accessToken;
         $post_data='{"scene":"'.$scene.'", "page":"'.$page.'", "width":'.$width.'}';
         $res = http_request($url, $post_data);
-        $file_name = $_SERVER['DOCUMENT_ROOT'].'/upload/'.$scene.'.jpg';
+        $file_name = $_SERVER['DOCUMENT_ROOT'].'/uploads/'.md5($scene.time()).'.jpg';
         file_put_contents($file_name, $res);
         return $file_name;
     }

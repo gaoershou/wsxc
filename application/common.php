@@ -433,32 +433,19 @@ function myBase64Decode(&$str) {
 /*
  * 生成1张图的车源图片
  */
-function makeCarsBackGroundOne($carsInfo,$img_list,$nickname) {
-    //创建目录
-    $save_path = $_SERVER['DOCUMENT_ROOT']."/upload/gjcars/";
-    $file_ext = 'jpg';
-    if (!file_exists($save_path)) {
-        mkdir($save_path);
-    }
+function makeCarsBackGroundOne($carsInfo,$img_list,$tmp_path) {
+
     $p_allname = $carsInfo['p_allname'];//名称
     $p_year = $carsInfo['p_year'] > 0 ? $carsInfo['p_year'].'年' : '年限不详';//年限
-    $p_hours_info = $carsInfo['p_hours'] ? $carsInfo['p_hours'] : '小时数不详';//小时数
+    $p_hours_info = $carsInfo['p_hours'] ? $carsInfo['p_hours'].'小时' : '小时数不详';//小时数
     $p_show_id = '编号：'.$carsInfo['p_id'];//设备编号
-    $user_name = $nickname ? $nickname : '';
-    $now_time = time();
-    $rand_str = md5($carsInfo['p_id'].$now_time);
-    //新文件名
-    $new_file_name =  count($img_list) . '_' .$rand_str . '.' . $file_ext;
-    $file_path = $save_path . $new_file_name;
-    @chmod($file_path, 0644);
-    $file_url = $save_path . $new_file_name;
-    $tmp_path =  $file_url;
+//    $user_name = $nickname ? $nickname : '';
 
     //海报背景
-    $poster_path = $_SERVER['DOCUMENT_ROOT']."/upload/head/cars_photo_poster_one.png";//1图
+    $poster_path = $_SERVER['DOCUMENT_ROOT']."/uploads/head/cars_photo_poster_one.png";//1图
     $poster_bj_path = @imagecreatefromstring(fileGetContent($poster_path));
     //字体路径
-    $font_path = $_SERVER['DOCUMENT_ROOT']."/upload/head/STXINGKA.TTF";//简体字
+    $font_path = $_SERVER['DOCUMENT_ROOT']."/uploads/head/msyh.ttc";//简体字
     //创建画布
     $im = imagecreatetruecolor(750, 1334);
     //颜色值
@@ -482,8 +469,8 @@ function makeCarsBackGroundOne($carsInfo,$img_list,$nickname) {
     imagettftext($poster_bj_path, 28, 0, 28, 210, $huise, $font_path, $p_year .'-'. $p_hours_info);
     //设备编号
     imagettftext($poster_bj_path, 28, 0, 520, 210, $huise, $font_path, $p_show_id);
-    //昵称
-    imagettftext($poster_bj_path, 30, 0, 60, 1100, $black, $font_path, $user_name);
+//    //昵称
+//    imagettftext($poster_bj_path, 30, 0, 60, 1100, $black, $font_path, $user_name);
     //1图
     imagecopy($poster_bj_path, $cars_thumb_one, 28, 280, 0, 0, 690, 630);//拷贝图像的一部分
     //生产图片
@@ -495,27 +482,209 @@ function makeCarsBackGroundOne($carsInfo,$img_list,$nickname) {
 /*
  * 生成4张图的车源图片
  */
-function makeCarsBackGroundFour($carsInfo,$img_list,$nickname) {
+function makeCarsBackGroundFour($carsInfo,$img_list,$tmp_path) {
+    $p_allname = $carsInfo['p_allname'];//名称
+    $p_year = $carsInfo['p_year'] > 0 ? $carsInfo['p_year'].'年' : '年限不详';//年限
+    $p_hours_info = $carsInfo['p_hours'] ? $carsInfo['p_hours'].'小时' : '小时数不详';//小时数
+    $p_show_id = '编号：'.$carsInfo['p_id'];//设备编号
+//    $user_name = $nickname ? $nickname : '';
 
+    //海报背景
+    $poster_path = $_SERVER['DOCUMENT_ROOT']."/uploads/head/cars_photo_poster_one.png";//1图
+    $poster_bj_path = @imagecreatefromstring(fileGetContent($poster_path));
+    //字体路径
+    $font_path = $_SERVER['DOCUMENT_ROOT']."/uploads/head/msyh.ttc";//简体字
+    //创建画布
+    $im = imagecreatetruecolor(750, 1334);
+    //颜色值
+
+    $black = imagecolorallocate($im, 63, 63, 63);//黑色398 116
+    $huise = imagecolorallocate($im, 190, 190, 190);//黑色398 116
+    $carsImgList = $img_list;
+    //获取图片宽高
+    $cars_img_one = $carsImgList[0];
+    //$img_size_one = utilLib::getImageSize($cars_img_one, 'curl');
+    list($max_width, $max_height) = getimagesize($cars_img_one);
+
+    //产品图片创建
+    $cars_thumb_one = imagecreatetruecolor(340, 300);
+    $cars_source_one = @imagecreatefromstring(fileGetContent($cars_img_one));
+    imagecopyresampled($cars_thumb_one, $cars_source_one, 0, 0, 0, 0, 340, 300, $max_width, $max_height);
+    //imagecopyresampled($cars_thumb_one, $cars_source_one, 0, 0, 0, 0, 340, 300, $img_size_one['width'], $img_size_one['height']);
+
+    //获取图片宽高
+    $cars_img_two = $carsImgList[1];
+    //$img_size_two = utilLib::getImageSize($cars_img_two, 'curl');
+
+    list($max_width, $max_height) = getimagesize($cars_img_two);
+
+    //产品图片创建
+    $cars_thumb_two = imagecreatetruecolor(340, 300);
+    $cars_source_two = @imagecreatefromstring(fileGetContent($cars_img_two));
+    // imagecopyresampled($cars_thumb_two, $cars_source_two, 0, 0, 0, 0, 340, 300, $img_size_two['width'], $img_size_two['height']);
+
+    imagecopyresampled($cars_thumb_two, $cars_source_two, 0, 0, 0, 0, 340, 300, $max_width, $max_height);
+
+    //获取图片宽高
+    $cars_img_three = $carsImgList[2];
+    //$img_size_three = utilLib::getImageSize($cars_img_three, 'curl');
+
+    list($max_width, $max_height) = getimagesize($cars_img_three);
+
+    //产品图片创建
+    $cars_thumb_three = imagecreatetruecolor(340, 300);
+    $cars_source_three = @imagecreatefromstring(fileGetContent($cars_img_three));
+    //imagecopyresampled($cars_thumb_three, $cars_source_three, 0, 0, 0, 0, 340, 300, $img_size_three['width'], $img_size_three['height']);
+    imagecopyresampled($cars_thumb_three, $cars_source_three, 0, 0, 0, 0, 340, 300, $max_width, $max_height);
+
+    //获取图片宽高
+    $cars_img_four = $carsImgList[3];
+    //$img_size_four = utilLib::getImageSize($cars_img_four, 'curl');
+
+    list($max_width, $max_height) = getimagesize($cars_img_four);
+    //产品图片创建
+    $cars_thumb_four = imagecreatetruecolor(340, 300);
+    $cars_source_four = @imagecreatefromstring(fileGetContent($cars_img_four));
+    //imagecopyresampled($cars_thumb_four, $cars_source_four, 0, 0, 0, 0, 340, 300, $img_size_four['width'], $img_size_four['height']);
+    imagecopyresampled($cars_thumb_four, $cars_source_four, 0, 0, 0, 0, 340, 300, $max_width, $max_height);
+
+    //车源名称
+    imagettftext($poster_bj_path, 30, 0, 28, 130, $black, $font_path, $p_allname);
+    //年限小时数
+    imagettftext($poster_bj_path, 28, 0, 28, 210, $huise, $font_path, $p_year .'-'. $p_hours_info);
+    //设备编号
+    imagettftext($poster_bj_path, 28, 0, 520, 210, $huise, $font_path, $p_show_id);
+    //店铺名称
+//    imagettftext($poster_bj_path, 30, 0, 60, 1100, $black, $font_path, $user_name);
+
+    //4图
+    imagecopy($poster_bj_path, $cars_thumb_one, 28, 280, 0, 0, 340, 300);
+    //加图片2
+    imagecopy($poster_bj_path, $cars_thumb_two, 380, 280, 0, 0, 340, 300);
+    //加图片3
+    imagecopy($poster_bj_path, $cars_thumb_three, 28, 590, 0, 0, 340, 300);
+    //加图片4
+    imagecopy($poster_bj_path, $cars_thumb_four, 380, 590, 0, 0, 340, 300);
+
+    //生产图片
+    imagejpeg($poster_bj_path, $tmp_path, 100);
+    //释放
+    imagedestroy($poster_bj_path);
+    return $tmp_path;
 }
 /*
  * 生成9张图的车源图片
  */
-function makeCarsBackGroundNine($carsInfo,$img_list,$nickname) {
+function makeCarsBackGroundNine($carsInfo,$img_list,$tmp_path) {
+    $p_allname = $carsInfo['p_allname'];//名称
+    $p_year = $carsInfo['p_year'] > 0 ? $carsInfo['p_year'].'年' : '年限不详';//年限
+    $p_hours_info = $carsInfo['p_hours'] ? $carsInfo['p_hours'].'小时' : '小时数不详';//小时数
+    $p_show_id = '编号：'.$carsInfo['p_id'];//设备编号
+//    $user_name = $nickname ? $nickname : '';
+    //海报背景
+    $poster_path = $_SERVER['DOCUMENT_ROOT']."/uploads/head/cars_photo_poster_nine.png";//1图
+    $poster_bj_path = @imagecreatefromstring(fileGetContent($poster_path));
+    //字体路径
+    $font_path = $_SERVER['DOCUMENT_ROOT']."/uploads/head/msyh.ttc";//简体字
+    //创建画布
+    $im = imagecreatetruecolor(750, 1334);
+    //颜色值
 
+    $black = imagecolorallocate($im, 63, 63, 63);//黑色398 116
+    $huise = imagecolorallocate($im, 190, 190, 190);//黑色398 116
+    $num = 240;
+    foreach($img_list as $key=>$value) {
+        $cars_img_one = $value;
+        list($max_width, $max_height) = getimagesize($cars_img_one);
+        $width = $max_width >= 690 ? 690 : $max_width;
+        $height = $max_height >= 500 ? 500 : $max_height;
+        $position = $max_width >= 690 ? 28 : ($max_width >= 600 ? 40 : 180);
+        //产品图片创建1图
+        $cars_thumb_one = imagecreatetruecolor(690, 500);
+        $cars_source_one = @imagecreatefromstring(fileGetContent($cars_img_one));
+        // imagecopyresampled($cars_thumb_one, $cars_source_one, 0, 0, 0, 0, 690, 500, $img_size_one['width'], $img_size_one['height']);
+        imagecopyresampled($cars_thumb_one, $cars_source_one, 0, 0, 0, 0, $width, $height, $max_width, $max_height);
+        imagecopy($poster_bj_path, $cars_thumb_one, $position, $num, 0, 0, $width, $height);
+        $num += 510;
+    }
+    //车源名称
+    imagettftext($poster_bj_path, 30, 0, 28, 130, $black, $font_path, $p_allname);
+    //年限小时数
+    imagettftext($poster_bj_path, 28, 0, 28, 210, $huise, $font_path, $p_year .'-'. $p_hours_info);
+    //设备编号
+    imagettftext($poster_bj_path, 28, 0, 520, 210, $huise, $font_path, $p_show_id);
+    //店铺名称
+//    imagettftext($poster_bj_path, 30, 0, 60, 4950, $black, $font_path, $user_name);
+    //生产图片
+    imagejpeg($poster_bj_path, $tmp_path, 100);
+    //释放
+    imagedestroy($poster_bj_path);
+    return $tmp_path;
 }
 
 /*
  * 生成1张图和4张图的车源海报
  */
-function makeCarsPoster($carsInfo,$img_list,$nickname) {
-
+function makeCarsPoster($uid, $pId, $wxCode, $imgCount,$poster_path) {
+    //创建目录
+    $save_path = $_SERVER['DOCUMENT_ROOT']."/static/gjcars/";
+    $file_ext = 'jpg';
+    if (!file_exists($save_path)) {
+        mkdir($save_path);
+    }
+    $now_time = time();
+    $rand_str = md5($pId.$now_time);
+    //新文件名
+    $new_file_name = $imgCount . '_' . $uid .'_'. $rand_str . '.' . $file_ext;
+    $file_path = $save_path . $new_file_name;
+    @chmod($file_path, 0644);
+    $posterSource = fileGetContent($poster_path);
+    $poster_bj_path = @imagecreatefromstring($posterSource);
+    list($max_width, $max_height) = getimagesize($wxCode);
+    //用户小程序二维码
+    $user_thumb = imagecreatetruecolor(280, 280); //268 437
+    $wxCodeSource = fileGetContent($wxCode);
+    $user_source = @imagecreatefromstring($wxCodeSource);
+    imagecopyresampled($user_thumb, $user_source, 0, 0, 0, 0, 280, 280, $max_width, $max_height);
+    //加入背景
+    imagecopy($poster_bj_path, $user_thumb, 440, 960, 0, 0, 280, 280);
+    //生产图片
+    imagejpeg($poster_bj_path, $file_path, 100);
+    //释放
+    imagedestroy($poster_bj_path);
+    return $file_path;
 }
 /*
  * 生成9张图的车源海报
  */
-function makeCarsNinePoster($carsInfo,$img_list,$nickname) {
-
+function makeCarsNinePoster($uid, $pId, $wxCode, $imgCount,$poster_path) {
+//创建目录
+    $save_path = $_SERVER['DOCUMENT_ROOT']."/static/gjcars/";
+    $file_ext = 'jpg';
+    if (!file_exists($save_path)) {
+        mkdir($save_path);
+    }
+    $now_time = time();
+    $rand_str = md5($pId.$now_time);
+    //新文件名
+    $new_file_name = $imgCount . '_' . $uid .'_'. $rand_str . '.' . $file_ext;
+    $file_path = $save_path . $new_file_name;
+    @chmod($file_path, 0644);
+    $posterSource = fileGetContent($poster_path);
+    $poster_bj_path = @imagecreatefromstring($posterSource);
+    list($max_width, $max_height) = getimagesize($wxCode);
+    //用户小程序二维码
+    $user_thumb = imagecreatetruecolor(280, 280); //268 437
+    $wxCodeSource = fileGetContent($wxCode);
+    $user_source = @imagecreatefromstring($wxCodeSource);
+    imagecopyresampled($user_thumb, $user_source, 0, 0, 0, 0, 280, 280, $max_width, $max_height);
+    //加入背景
+    imagecopy($poster_bj_path, $user_thumb, 440, 4830, 0, 0, 280, 280);
+    //生产图片
+    imagejpeg($poster_bj_path, $file_path, 100);
+    //释放
+    imagedestroy($poster_bj_path);
+    return $file_path;
 }
 
 /*
@@ -549,4 +718,110 @@ function fileGetContent($url, $use_include_path = false, $stream_context = null,
     } else {
         return false;
     }
+}
+/**
+ * 获取远程图片的宽高和体积大小
+ *
+ * @param string $url 远程图片的链接
+ * @param string $type 获取远程图片资源的方式, 默认为 curl 可选 fread
+ * @param boolean $isGetFilesize 是否获取远程图片的体积大小, 默认false不获取, 设置为 true 时 $type 将强制为 fread
+ * @return false|array
+ */
+function getPosterImageSize($url, $type = 'curl', $isGetFilesize = false) {
+    // 若需要获取图片体积大小则默认使用 fread 方式
+    $type = $isGetFilesize ? 'fread' : $type;
+
+    if ($type == 'fread') {
+        // 或者使用 socket 二进制方式读取, 需要获取图片体积大小最好使用此方法
+        $handle = fopen($url, 'rb');
+
+        if (! $handle) return false;
+
+        // 只取头部固定长度168字节数据
+        $dataBlock = fread($handle, 168);
+    }
+    else {
+        // 据说 CURL 能缓存DNS 效率比 socket 高
+        $ch = curl_init($url);
+        // 超时设置
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        // 取前面 168 个字符 通过四张测试图读取宽高结果都没有问题,若获取不到数据可适当加大数值
+        curl_setopt($ch, CURLOPT_RANGE, '0-167');
+        // 跟踪301跳转
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        // 返回结果
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $dataBlock = curl_exec($ch);
+
+        curl_close($ch);
+
+        if (! $dataBlock) return false;
+    }
+
+    // 将读取的图片信息转化为图片路径并获取图片信息,经测试,这里的转化设置 jpeg 对获取png,gif的信息没有影响,无须分别设置
+    // 有些图片虽然可以在浏览器查看但实际已被损坏可能无法解析信息
+    $size = getimagesize('data://image/jpeg;base64,'. base64_encode($dataBlock));
+    if (empty($size)) {
+        return false;
+    }
+
+    $result['width'] = $size[0];
+    $result['height'] = $size[1];
+
+    // 是否获取图片体积大小
+    if ($isGetFilesize) {
+        // 获取文件数据流信息
+        $meta = stream_get_meta_data($handle);
+        // nginx 的信息保存在 headers 里，apache 则直接在 wrapper_data
+        $dataInfo = isset($meta['wrapper_data']['headers']) ? $meta['wrapper_data']['headers'] : $meta['wrapper_data'];
+
+        foreach ($dataInfo as $va) {
+            if ( preg_match('/length/iU', $va)) {
+                $ts = explode(':', $va);
+                $result['size'] = trim(array_pop($ts));
+                break;
+            }
+        }
+    }
+
+    if ($type == 'fread') fclose($handle);
+
+    return $result;
+}
+/**
+ * 用户身份证号验证
+ *
+ * @param $cardid 身份证号
+ * @return bool
+ */
+function checkUserCardId($cardid)
+{
+    $id 	  = strtoupper($cardid);
+    $isIDCard1="/^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}/";
+    $isIDCard2="/^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}([0-9]|X)/";
+    $strlen = strlen($id);
+    if(!preg_match($isIDCard1, $id) && !preg_match($isIDCard2, $id))
+    {
+        return false;
+    }
+    if($strlen == 18)
+    {
+        // -- 检验18位身份证的校验码是否正确。--
+        //校验位按照ISO 7064:1983.MOD 11-2的规定生成，X可以认为是数字10。
+        $arrInt = array(7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2);
+        $arrCh  = array('1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2');
+        $sign   = 0;
+        for($i = 0; $i < 17; $i++) {
+            $b = (int) $id{$i};
+            $w = $arrInt[$i];
+            $sign += $b * $w;
+        }
+        $n  = $sign % 11;
+        $valNum = $arrCh[$n];
+        if ($valNum != substr($id,17, 1)){
+            return FALSE;
+        }
+    }
+    return true;
 }

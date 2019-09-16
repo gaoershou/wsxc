@@ -391,12 +391,12 @@ class PhotoController extends Controller
         $pId = request()->param('p_id');//机源id
         $page = request()->param('page');//机源id
         $pic_list = request()->param('pic_list');//图片列表
-        $scene = request()->param('scene');//参数
         $tokenInfo = request()->param('tokenInfo');//获取用户信息
         $uid = $tokenInfo['u_id'];
         if(!$pId || !$page || !$pic_list || !$uid){
             return json(config('weixin.common')[2]);//缺少必要参数
         }
+        $scene = $pId.'*'.$uid;
         $where = "from_type = 1 and p_id = {$pId}";
         $imageArr = explode(',',$pic_list);//分割成数组
         if(count($imageArr) == 1 || count($imageArr) == 4 || count($imageArr) == 9) {//判断只生成1,4,9张图片
@@ -409,33 +409,78 @@ class PhotoController extends Controller
             $img_list = array_slice($imageArr, 0, 9);
         }
         $carsInfo = Db::name('cars')->where($where)->field('p_allname,p_year,p_hours,p_details,p_id')->find();
-        $nickname = Db::name('member_weixin')->where('uid',$uid)->value('nickname');
         if($carsInfo){
+            $imgCount = count($img_list); //图片数量
+            //先判断一下创建过车源海报
+            $posterWhere = "from_type = 1 and p_id ={$pId} and img_num = $imgCount";
+            $picUrl = Db::name('cars_poster')->where($posterWhere)->field('poster_url')->order('create_time desc')->find();
+            if(!$picUrl){
+                //创建目录
+                $save_path = $_SERVER['DOCUMENT_ROOT']."/uploads/gjcars/";
+                $file_ext = 'jpg';
+                if (!file_exists($save_path)) {
+                    mkdir($save_path);
+                }
+                $now_time = time();
+                $rand_str = md5($carsInfo['p_id'].$now_time);
 
-            if(count($img_list) == 1) {
-                $carsBackGround = makeCarsBackGroundOne($carsInfo, $img_list, $nickname);
-            }
-            if(count($img_list) == 4) {
-                $carsBackGround = makeCarsBackGroundFour($pId, $img_list, $nickname);
-            }
-            if(count($img_list) == 9) {
-                $carsBackGround = makeCarsBackGroundNine($pId, $img_list, $nickname);
-            }
-            $weixinObj = $wxappObj = Wxapp::getInstance(config('weixin.wmxc_app'),config('weixin.wmxc_secrect'));
-            $wxCode = $weixinObj->createQrCode($scene,$page);
-            $imgCount = count($img_list);
-            if($imgCount == 1 || $imgCount == 4) {
-                $carsPost = makeCarsPoster($uid, $pId, $wxCode, $imgCount);
-            } else {
-                $carsPost = makeCarsNinePoster($uid, $pId, $wxCode, $imgCount);
+                //新文件名
+                $new_file_name =  $imgCount . '_' .$rand_str . '.' . $file_ext;
+                $file_url = $save_path . $new_file_name;
+                @chmod($file_url, 0644);
+                if($imgCount == 1) {
+                    $carsBackGround = makeCarsBackGroundOne($carsInfo, $img_list, $file_url);
+                }
+                if($imgCount == 4) {
+                    $carsBackGround = makeCarsBackGroundFour($carsInfo, $img_list, $file_url);
+                }
+                if($imgCount == 9) {
+                    $carsBackGround = makeCarsBackGroundNine($carsInfo, $img_list, $file_url);
+                }
+                $weixinObj = $wxappObj = Wxapp::getInstance(config('weixin.wmxc_app'),config('weixin.wmxc_secrect'));
+                $wxCode = $weixinObj->createQrCode($scene,$page);
+                if($imgCount == 1 || $imgCount == 4) {
+                    $carsPost = makeCarsPoster($uid, $pId, $wxCode, $imgCount,$carsBackGround);
+                } else {
+                    $carsPost = makeCarsNinePoster($uid, $pId, $wxCode, $imgCount,$carsBackGround);
+                }
+                if(file_exists($carsPost)){
+                    $newCarsPost = str_replace($_SERVER['DOCUMENT_ROOT'],'',$carsPost);
+                    $pic_url = $domain = request()->root(true).$newCarsPost;
+                    $posterData = array(
+                        'p_id' => $pId,
+                        'poster_url' => $pic_url,
+                        'u_id' => $uid,
+                        'type' => 1,
+                        'create_time' => time(),
+                        'from_type' => 1,//来自 0搞2手 1挖盟相册
+                        'ip' => request()->ip(),
+                        'img_num' => $imgCount //图片数量
+                    );
+                    Db::name('cars_poster')->insert($posterData);
+                    @unlink($wxCode);
+                    $data = array(
+                        'code' => 0,
+                        'msg' => '获取成功',
+                        'pic_url' => $pic_url,
+                        'cars_info' => $carsInfo
+                    );
+                    return json($data);
+
+                }else{
+                    return json(config('weixin.photo')[3]);
+                }
+            }else{
+                $data = array(
+                    'code' => 0,
+                    'msg' => '图片获取成功',
+                    'pic_url' => $picUrl['poster_url'],
+                    'cars_info' => $carsInfo
+                );
+                return json($data);
             }
 
-            $data = array(
-                'code' => 0,
-                'msg' => '图片生成成功',
-                'data' => $carsInfo
-            );
-            return json($data);
+
         }else{
             $data = array(
                 'code' => 1,

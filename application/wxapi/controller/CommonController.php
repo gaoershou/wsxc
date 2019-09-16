@@ -268,8 +268,10 @@ class CommonController extends Controller
 //
 //        }
 //        var_dump($carsListsInfo);
-        $root = $_SERVER['DOCUMENT_ROOT'];
-        var_dump($root);
+//        $root = $_SERVER['DOCUMENT_ROOT'];
+//        $domain = request()->root(true);
+        $domain = request()->domain();
+        var_dump($domain);
     }
 
     /**
