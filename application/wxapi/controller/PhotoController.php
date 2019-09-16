@@ -227,6 +227,76 @@ class PhotoController extends Controller
 
 
     }
+    /**
+     * 我的发布机源列表
+     *
+     * @param  \think\Request  $request
+     * @return \think\Response
+     */
+    public function getMyPhotoList(Request $request)
+    {
+        $tokenInfo = $request->param('tokenInfo');//获取用户信息
+
+        if(!$tokenInfo['u_id']){
+            return json(config('weixin.common')[2]);
+        }
+        $p = $request->param('p');
+        $pType = $request->param('p_type');
+        $trans = $request->param('status');//是否转发
+        $trans = $trans ? intval($trans) : 0; //0否1转发
+        $where = "from_type = 1 and uid = {$tokenInfo['u_id']} and is_trans = {$trans}";
+        $p = $p ? intval($p) : 1;//分页，默认是1
+        $limit = 10;
+        $offset = ($p-1)*$limit;
+
+        $type = $pType ? intval($pType) : 0; //1是发货机源 2是用户机源
+        if($type){
+            $where .= " and p_type = {$type}";
+        }
+        $filed = 'p_allname,p_price,p_year,p_type,p_hours,p_hits,p_id,p_addtime,p_is_sold_out,remarks,thumbs_up,transfer_deposit';
+        $carsListsInfo = Db::name('cars')->where($where)->field($filed)->limit($offset,$limit)->select();
+        if($carsListsInfo){
+            //图片拼接
+            $p_id_str = getSubStrByKey($carsListsInfo,'p_id');
+            $carsImgsInfo = Db::name('cars_images')->where("p_id in({$p_id_str})")->field('image_path,p_id')->group('p_id')->select();
+            $array = getSubValByKey($carsImgsInfo,'p_id','image_path');
+            if($trans>0){
+                //分享者信息
+                $shareUid = Db::name('cars_thumbs_record')->where("type = 3 and uid = {$tokenInfo['u_id']} and pid in({$p_id_str})")->field('shareuid,pid')->select();
+                $shareUidArr = $shareUid ? getSubValByKey($shareUid,'pid','shareuid') : array();
+            }
+
+            foreach ($carsListsInfo as $k => $v){
+                $carsListsInfo[$k]['name'] = $v['p_type'] == 1 ? '发货机源' : '用户机源';
+                $carsListsInfo[$k]['p_price'] = $v['p_price']>0 ? getPriceToWan($v['p_price']) : '面议';//价格转换
+                $carsListsInfo[$k]['img_url'] = isset($array[$v['p_id']]) ? $array[$v['p_id']][0]:'';//图片地址
+                $carsListsInfo[$k]['p_addtime'] = date('Y/m/d H:i',$v['p_addtime']);//发布时间
+                if($v['p_is_sold_out'] ==0){
+                    $carsListsInfo[$k]['sold_status'] = '在售';
+                }elseif ($v['p_is_sold_out']==1){
+                    $carsListsInfo[$k]['sold_status'] = '已售';
+                }else{
+                    $carsListsInfo[$k]['sold_status'] = '未上架';
+                }
+                $carsListsInfo[$k]['share_name'] =  $trans>0 ? Db::name('member_weixin')->where('uid',$shareUidArr[$v['p_id']][0])->value('nickname'):'';
+            }
+            $data = array(
+                'code' => 0,
+                'msg' => "获取成功",
+                'carsListInfo' => $carsListsInfo,
+            );
+            return json($data);
+        }else{
+            $data = array(
+                'code' => 1,
+                'msg' => "没有更多数据了",
+                'carsListInfo' => []
+            );
+            return json($data);
+        }
+
+
+    }
 
     /**
      * 我的相册的具体信息
@@ -577,7 +647,7 @@ class PhotoController extends Controller
         if(!$shareId || !$pId || !$uid){
             return json(config('weixin.common')[2]);//缺少必要参数
         }
-        $filed = "p_id,uid,p_hits,p_tel,thumbs_up,p_username,p_tel,p_addtime,p_listtime,transfer_deposit";
+        $filed = "p_id,uid,p_hits,p_tel,thumbs_up,p_username,p_tel,p_addtime,p_listtime,transfer_deposit,p_type";
         $carsWhere = "from_type = 1 and p_id = {$pId}";
         $carsInfo = Db::name('cars')->where($carsWhere)->field($filed,true)->find();//获取车源信息
         if(!$carsInfo){
@@ -592,6 +662,8 @@ class PhotoController extends Controller
         }
         $carsInfo['p_username'] = $memberInfo['legalname'];
         $carsInfo['p_tel'] = $memberInfo['mobilephone'];
+        $carsInfo['p_type'] = 1;//转存的都是发货机源
+        $carsInfo['is_trans'] = 1;//0是自己发布1是转存的
         $newPid = Db::name('cars')->insertGetId($carsInfo);//插入机源数据,并返回车源id
        if(!$newPid){
            return json(config('weixin.common')[6]);
