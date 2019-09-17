@@ -345,6 +345,7 @@ class PhotoController extends Controller
             if($carsInfo['p_declaration']==1){$otherInfo[]="报关单";}
             $carsInfo['base_info'] = $otherInfo;
             //工况信息
+            $carsInfo['u_id'] = $uid;
             $operatingInfo = explode(',',$carsInfo['operating_type']);
             $operatingType = array('其他','土方','石方','破碎');
             $carsInfo['p_price'] = $carsInfo['p_price'] ? getPriceToWan($carsInfo['p_price']):'面议';
@@ -365,6 +366,7 @@ class PhotoController extends Controller
             $carsInfo['videos_list'] =  $videosList;
             $carsInfo['head_img'] = $shareId ? Db::name('member')->where('id',$shareId)->value('default_logo') :'';
             $carsInfo['is_transfer'] = $is_transfer>0 ? 1 :0;
+
             $data = array(
                 'code' => 0,
                 'msg' => '获取成功',
