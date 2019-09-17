@@ -18,6 +18,7 @@ Route::post('wxapi/getCity', 'wxapi/Common/getCity')->allowCrossDomain();//获�
 Route::group('wxapi', function () {
     Route::post('editMemberInfo', 'wxapi/User/editMemberInfo');
     Route::post('getUserInfo', 'wxapi/User/getUserInfo');
+    Route::get('getMyInfo', 'wxapi/User/getMyInfo');//进入我的页面调用接口
     Route::post('selectCateBrand', 'wxapi/Common/selectCateBrand');//获取车源品牌数据
     Route::get('selectCateList', 'wxapi/Common/selectCateList');//选择机型列表
     Route::post('selectNewSerial', 'wxapi/Common/selectNewSerial');//选择品牌系列

@@ -246,7 +246,36 @@ class UserController extends Controller
      return json($returnData);
 
 }
+/*
+ * 我的页面信息接口
+ */
+    public function getMyInfo(){//获取用户信息
 
+            $tokenInfo = request()->param('tokenInfo');
+            $data = Db::name('member')->where('id',$tokenInfo['u_id'])->field('default_logo,mobilephone,main_brand')->find();
+            if(!$data){
+                return json(config('weixin.return_info')[10]);
+            }
+            $weixinMemberInfo = Db::name('member_weixin')->where('uid',$tokenInfo['u_id'])->field('nickname,headimgurl')->find();
+            if(!$weixinMemberInfo){
+                return json(config('weixin.return_info')[10]);
+            }
+            $mainBrand = explode(',',$data['main_brand']);
+            $mobile = $data['mobilephone'];
+            $headImg = $data['default_logo'] ? $data['default_logo'] : $weixinMemberInfo['headimgurl'];
+            $name = $weixinMemberInfo['nickname'];
 
+            $returnData = array(
+                'code' => 0,
+                'msg'  => '获取数据成功',
+                'data' => array(
+                    'main_brand' => $mainBrand,
+                    'mobile' => $mobile,
+                    'name' => $name,
+                    'head_img' => $headImg
+                )
+            );
+            return json($returnData);
+    }
 
 }
