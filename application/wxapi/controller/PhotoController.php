@@ -491,7 +491,7 @@ class PhotoController extends Controller
                 $save_path = $_SERVER['DOCUMENT_ROOT']."/uploads/gjcars/";
                 $file_ext = 'jpg';
                 if (!file_exists($save_path)) {
-                    mkdir($save_path);
+                    mkdir($save_path,0777,true);
                 }
                 $now_time = time();
                 $rand_str = md5($carsInfo['p_id'].$now_time);
