@@ -168,20 +168,35 @@ class PhotoController extends Controller
         }
         $imagesList = $requestData['images_list'];//获取图片列表
         $videosList = $requestData['videos_list'];//获取视频列表
+        $data = array();
+        $data['images_list'] = '';
+        $data['videos_list'] = '';
         if($imagesList){//删除图片
+            $imagesList  = trim($imagesList,',');
             $where = "p_id = {$pid} and image_path in({$imagesList})";
-            $ret = Db::name('cars_images')->where($where)->update(array('is_del'=>1));
+            $ret1 = Db::name('cars_images')->where($where)->update(array('is_del'=>1));
+            $imgRet = Db::name('cars_images')->where("is_del = 0 and p_id = {$pid}")->field('image_path')->select();
+            if($imgRet){
+                $data['images_list'] = $p_id = getSubByKey($imgRet, 'image_path');
+            }
         }
         if($videosList){//删除视频
-            $where = "p_id = {$pid} and video_path in({$imagesList})";
-            $ret = Db::name('cars_video')->where($where)->update(array('is_del'=>1));
+            $videosList  = trim($videosList,',');
+            $where = "p_id = {$pid} and video_path in({$videosList})";
+            $ret2 = Db::name('cars_video')->where($where)->update(array('is_del'=>1));
+            $vidRet = Db::name('cars_video')->where("is_del = 0 and p_id = {$pid}")->field('video_path')->select();
+            if($vidRet){
+                $data['videos_list'] = $p_id = getSubByKey($vidRet, 'video_path');
+            }
+
         }
-        if($ret){//删除成功
-            $data = array(
+        if($ret1 || $ret2){//删除成功
+            $resData = array(
                 'code' => 0,
-                'msg' => '删除成功！'
+                'msg' => '删除成功！',
+                'data' =>$data
             );
-            return json($data);
+            return json($resData);
         }else{
             return json(config('weixin.common')[3]);
         }

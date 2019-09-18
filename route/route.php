@@ -34,5 +34,6 @@ Route::group('wxapi', function () {
     Route::post('accordingToTypeGetList', 'wxapi/Photo/accordingToTypeGetList');//根据不同的类型展示不同的列表
     Route::post('changeCarsSoldStatus', 'wxapi/Photo/changeCarsSoldStatus');//改变车源销售状态
     Route::post('addPageSavePic', 'wxapi/Photo/addPageSavePic');//保存页面的图片
+    Route::post('delPhotoResource', 'wxapi/Photo/delPhotoResource');//删除图片或者照片
 })->middleware('checkToken')->allowCrossDomain();
 
