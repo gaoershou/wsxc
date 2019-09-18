@@ -154,7 +154,55 @@ class PhotoController extends Controller
 
 
     }
+    /**
+     * 删除照片或者视频
+     *
+     * @return \think\Response
+     */
+    public function delPhotoResource()
+    {
+        $requestData = request()->param();
+        $pid = $requestData['id'];
+        if(!$pid){
+            return json(config('weixin.common')[2]);//缺少必要的参数
+        }
+        $imagesList = $requestData['images_list'];//获取图片列表
+        $videosList = $requestData['videos_list'];//获取视频列表
+        if($imagesList && $videosList){//视频和图片都存在
+            $imgRet = addCarImages($pid,$imagesList);
+            $vidRet = addCarVideos($pid,$videosList);
+            if( $imgRet && $vidRet){
+                return json(array('code' => 0,'msg' => '上传图片和视频成功'));
+            }elseif ($imgRet && !$vidRet){
+                return json(config('weixin.upload')[0]);
+            }elseif(!$imgRet && $vidRet){
+                return json(config('weixin.upload')[1]);
+            }else{
+                return json(config('weixin.upload')[2]);
+            }
+        }elseif ($imagesList && !$videosList){//只存在图片不存在视频
+            $imgRet = addCarImages($pid,$imagesList);
+            if($imgRet){
+                return json(array('code' => 0,'msg' => '上传图片成功'));
+            }else{
+                return json(config('weixin.common')[6]);
+            }
 
+
+
+        }elseif (!$imagesList && $videosList){
+            $vidRet = addCarVideos($pid,$videosList);
+            if($vidRet){
+                return json(array('code' => 0,'msg' => '上传视频成功'));
+            }else{
+                return json(config('weixin.common')[6]);
+            }
+        }else{
+            return json(config('weixin.common')[2]);//缺少必要的参数
+        }
+
+
+    }
     /**
      * 首页获取相册信息
      *
@@ -196,7 +244,7 @@ class PhotoController extends Controller
             //图片拼接
             $p_id = getSubByKey($carsListsInfo, 'p_id');
             $p_id_str = implode(',',$p_id);
-            $carsImgsInfo = Db::name('cars_images')->where("p_id in({$p_id_str})")->field('image_path,p_id,count(image_path) as num')->group('p_id')->select();
+            $carsImgsInfo = Db::name('cars_images')->where("is_del = 0 and p_id in({$p_id_str})")->field('image_path,p_id,count(image_path) as num')->group('p_id')->select();
             $array = array();
             foreach ($carsImgsInfo as $val){
                 $array[$val['p_id']][] =$val['image_path'];
@@ -259,7 +307,7 @@ class PhotoController extends Controller
         if($carsListsInfo){
             //图片拼接
             $p_id_str = getSubStrByKey($carsListsInfo,'p_id');
-            $carsImgsInfo = Db::name('cars_images')->where("p_id in({$p_id_str})")->field('image_path,p_id')->group('p_id')->select();
+            $carsImgsInfo = Db::name('cars_images')->where("is_del = 0 and p_id in({$p_id_str})")->field('image_path,p_id')->group('p_id')->select();
             $array = getSubValByKey($carsImgsInfo,'p_id','image_path');
             if($trans>0){
                 //分享者信息
@@ -356,12 +404,12 @@ class PhotoController extends Controller
             }
             $carsInfo['operating_type'] = $operatType;
             //挖机图片
-            $imagesUrl = Db::name('cars_images')->where('p_id',$pId)->field('image_path')->select();
+            $imagesUrl = Db::name('cars_images')->where("is_del = 0 and p_id ={$pId}")->field('image_path')->select();
             //转化成一维数组
             $imagesList = getSubByKey($imagesUrl,'image_path');
             $carsInfo['images_list'] =  $imagesList;
             //挖机图片
-            $videosUrl = Db::name('cars_video')->where('p_id',$pId)->field('video_path')->select();
+            $videosUrl = Db::name('cars_video')->where("is_del = 0 and p_id ={$pId}")->field('video_path')->select();
             //转化成一维数组
             $videosList = getSubByKey($videosUrl,'video_path');
             $carsInfo['videos_list'] =  $videosList;
@@ -431,7 +479,7 @@ class PhotoController extends Controller
         if(!$pId){
             return json(config('weixin.common')[2]);//缺少必要参数
         }
-        $imagesUrl = Db::name('cars_images')->where('p_id',$pId)->field('image_path')->select();
+        $imagesUrl = Db::name('cars_images')->where("is_del = 0 and p_id ={$pId}")->field('image_path')->select();
        $carsInfo = array(
            'p_id' => $pId
        );
@@ -706,7 +754,7 @@ class PhotoController extends Controller
            return json(config('weixin.common')[6]);
        }
         //获取图片信息
-        $imgsInfo = Db::name('cars_images')->where('p_id',$pId)->field('p_id,id,create_time',true)->select();
+        $imgsInfo = Db::name('cars_images')->where("is_del = 0 and p_id ={$pId}")->field('p_id,id,create_time',true)->select();
         foreach ($imgsInfo as $k=>$val){
             $imgsInfo[$k]['p_id'] = $newPid;
             $imgsInfo[$k]['create_time'] = time();
@@ -714,7 +762,7 @@ class PhotoController extends Controller
         //插入图片
         Db::name('cars_images')->insertAll($imgsInfo);
         //获取视频信息
-        $carsVideoInfo = Db::name('cars_video')->where('p_id',$pId)->field('p_id,id,create_time',true)->select();
+        $carsVideoInfo = Db::name('cars_video')->where("is_del = 0 and p_id ={$pId}")->field('p_id,id,create_time',true)->select();
         foreach ($carsVideoInfo as $n=>$v){
             $carsVideoInfo[$n]['p_id'] = $newPid;
             $carsVideoInfo[$n]['create_time'] = time();

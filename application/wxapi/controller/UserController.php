@@ -272,7 +272,8 @@ class UserController extends Controller
                     'main_brand' => $mainBrand,
                     'mobile' => $mobile,
                     'name' => $name,
-                    'head_img' => $headImg
+                    'head_img' => $headImg,
+                    'u_id' => $tokenInfo['u_id']
                 )
             );
             return json($returnData);
