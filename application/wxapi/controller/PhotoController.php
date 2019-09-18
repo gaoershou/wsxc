@@ -179,6 +179,11 @@ class PhotoController extends Controller
             if($imgRet){
                 $data['images_list'] = $p_id = getSubByKey($imgRet, 'image_path');
             }
+        }else{
+            $imgRet = Db::name('cars_images')->where("is_del = 0 and p_id = {$pid}")->field('image_path')->select();
+            if($imgRet){
+                $data['images_list'] = $p_id = getSubByKey($imgRet, 'image_path');
+            }
         }
         if($videosList){//删除视频
             $videosList  = trim($videosList,',');
@@ -188,19 +193,20 @@ class PhotoController extends Controller
             if($vidRet){
                 $data['videos_list'] = $p_id = getSubByKey($vidRet, 'video_path');
             }
-
+        }else{
+            $vidRet = Db::name('cars_video')->where("is_del = 0 and p_id = {$pid}")->field('video_path')->select();
+            if($vidRet){
+                $data['videos_list'] = $p_id = getSubByKey($vidRet, 'video_path');
+            }
         }
-        if($ret1 || $ret2){//删除成功
+
             $resData = array(
                 'code' => 0,
                 'msg' => '删除成功！',
                 'data' =>$data
             );
-            return json($resData);
-        }else{
-            return json(config('weixin.common')[3]);
-        }
 
+            return json($resData);
 
     }
     /**
