@@ -205,8 +205,8 @@ class PhotoController extends Controller
             foreach ($carsListsInfo as $k => $v){
                 $carsListsInfo[$k]['name'] = $v['p_type'] == 1 ? '发货机源' : '用户机源';
                 $carsListsInfo[$k]['p_price'] = $v['p_price']>0 ? getPriceToWan($v['p_price']) : '面议';//价格转换
-                $carsListsInfo[$k]['img_nums'] = $array[$v['p_id']][1];//照片数量
-                $carsListsInfo[$k]['img_url'] = $array[$v['p_id']][0];//图片地址
+                $carsListsInfo[$k]['img_nums'] = isset($array[$v['p_id']]) ? $array[$v['p_id']][1] : 0;//照片数量
+                $carsListsInfo[$k]['img_url'] = isset($array[$v['p_id']]) ? $array[$v['p_id']][0] : '';//图片地址
             }
             $data = array(
                 'code' => 0,
