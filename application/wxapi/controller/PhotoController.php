@@ -73,7 +73,7 @@ class PhotoController extends Controller
             'p_declaration' => $requestData['p_declaration'],//报关单 0无1有
             'p_hammer' => $requestData['p_hammer'],//是否带锤
             'p_pipeline' => $requestData['p_pipeline'],//是否带管路
-            'operating_type' => $requestData['operating_type'],//工况类型
+            'operating_type' => trim($requestData['operating_type'],','),//工况类型
             'from_type' => 1,//0是来源置换宝 1是来源相册
         );
         if($pId>0){//更改信息
