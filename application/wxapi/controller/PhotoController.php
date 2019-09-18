@@ -173,8 +173,8 @@ class PhotoController extends Controller
         $data['videos_list'] = '';
         if($imagesList){//删除图片
             $imagesList  = trim($imagesList,',');
-            $where = "p_id = {$pid} and image_path in({$imagesList})";
-            $ret1 = Db::name('cars_images')->where($where)->update(array('is_del'=>1));
+            $where = "p_id = {$pid} and is_del= 0";
+            $ret1 = Db::name('cars_images')->where($where)->whereIn('image_path',$imagesList)->update(array('is_del'=>1));
             $imgRet = Db::name('cars_images')->where("is_del = 0 and p_id = {$pid}")->field('image_path')->select();
             if($imgRet){
                 $data['images_list'] = $p_id = getSubByKey($imgRet, 'image_path');
@@ -182,8 +182,8 @@ class PhotoController extends Controller
         }
         if($videosList){//删除视频
             $videosList  = trim($videosList,',');
-            $where = "p_id = {$pid} and video_path in({$videosList})";
-            $ret2 = Db::name('cars_video')->where($where)->update(array('is_del'=>1));
+            $where = "p_id = {$pid} and is_del = 0";
+            $ret2 = Db::name('cars_video')->where($where)->whereIn('video_path',$videosList)->update(array('is_del'=>1));
             $vidRet = Db::name('cars_video')->where("is_del = 0 and p_id = {$pid}")->field('video_path')->select();
             if($vidRet){
                 $data['videos_list'] = $p_id = getSubByKey($vidRet, 'video_path');
