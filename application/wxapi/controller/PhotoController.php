@@ -162,7 +162,7 @@ class PhotoController extends Controller
     public function delPhotoResource()
     {
         $requestData = request()->param();
-        $pid = $requestData['id'];
+        $pid = $requestData['p_id'];
         if(!$pid){
             return json(config('weixin.common')[2]);//缺少必要的参数
         }
