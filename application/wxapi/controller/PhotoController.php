@@ -488,7 +488,7 @@ class PhotoController extends Controller
             $picUrl = Db::name('cars_poster')->where($posterWhere)->field('poster_url')->order('create_time desc')->find();
             if(!$picUrl){
                 //创建目录
-                $save_path = $_SERVER['DOCUMENT_ROOT']."/public/uploads/gjcars/";
+                $save_path = $_SERVER['DOCUMENT_ROOT']."/uploads/gjcars/";
                 $file_ext = 'jpg';
                 if (!file_exists($save_path)) {
                     mkdir($save_path,0777,true);
