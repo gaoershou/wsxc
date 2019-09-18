@@ -168,37 +168,22 @@ class PhotoController extends Controller
         }
         $imagesList = $requestData['images_list'];//获取图片列表
         $videosList = $requestData['videos_list'];//获取视频列表
-        if($imagesList && $videosList){//视频和图片都存在
-            $imgRet = addCarImages($pid,$imagesList);
-            $vidRet = addCarVideos($pid,$videosList);
-            if( $imgRet && $vidRet){
-                return json(array('code' => 0,'msg' => '上传图片和视频成功'));
-            }elseif ($imgRet && !$vidRet){
-                return json(config('weixin.upload')[0]);
-            }elseif(!$imgRet && $vidRet){
-                return json(config('weixin.upload')[1]);
-            }else{
-                return json(config('weixin.upload')[2]);
-            }
-        }elseif ($imagesList && !$videosList){//只存在图片不存在视频
-            $imgRet = addCarImages($pid,$imagesList);
-            if($imgRet){
-                return json(array('code' => 0,'msg' => '上传图片成功'));
-            }else{
-                return json(config('weixin.common')[6]);
-            }
-
-
-
-        }elseif (!$imagesList && $videosList){
-            $vidRet = addCarVideos($pid,$videosList);
-            if($vidRet){
-                return json(array('code' => 0,'msg' => '上传视频成功'));
-            }else{
-                return json(config('weixin.common')[6]);
-            }
+        if($imagesList){//删除图片
+            $where = "p_id = {$pid} and image_path in({$imagesList})";
+            $ret = Db::name('cars_images')->where($where)->update(array('is_del'=>1));
+        }
+        if($videosList){//删除视频
+            $where = "p_id = {$pid} and video_path in({$imagesList})";
+            $ret = Db::name('cars_video')->where($where)->update(array('is_del'=>1));
+        }
+        if($ret){//删除成功
+            $data = array(
+                'code' => 0,
+                'msg' => '删除成功！'
+            );
+            return json($data);
         }else{
-            return json(config('weixin.common')[2]);//缺少必要的参数
+            return json(config('weixin.common')[3]);
         }
 
 
@@ -483,40 +468,6 @@ class PhotoController extends Controller
        $carsInfo = array(
            'p_id' => $pId
        );
-        if($imagesUrl){
-            //转化成一维数组
-            $imagesList = getSubByKey($imagesUrl,'image_path');
-            $carsInfo['images_list'] =  $imagesList;
-            $data = array(
-                'code' => 0,
-                'msg' => '获取成功',
-                'data' => $carsInfo
-            );
-            return json($data);
-        }else{
-            $data = array(
-                'code' => 1,
-                'msg' => '获取失败'
-            );
-            return json($data);
-        }
-    }
-    /**
-     * 删除微信照片和视频
-     *
-     * @param  int  $id
-     * @return \think\Response
-     */
-    public function deletePhotoResource()
-    {
-        $pId = request()->param('p_id');//机源id
-        if(!$pId){
-            return json(config('weixin.common')[2]);//缺少必要参数
-        }
-        $imagesUrl = Db::name('cars_images')->where('p_id',$pId)->field('image_path')->select();
-        $carsInfo = array(
-            'p_id' => $pId
-        );
         if($imagesUrl){
             //转化成一维数组
             $imagesList = getSubByKey($imagesUrl,'image_path');
