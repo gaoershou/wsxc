@@ -204,6 +204,7 @@ class PhotoController extends Controller
             }
             foreach ($carsListsInfo as $k => $v){
                 $carsListsInfo[$k]['name'] = $v['p_type'] == 1 ? '发货机源' : '用户机源';
+                $carsListsInfo[$k]['u_id'] = $tokenInfo['u_id'];
                 $carsListsInfo[$k]['p_price'] = $v['p_price']>0 ? getPriceToWan($v['p_price']) : '面议';//价格转换
                 $carsListsInfo[$k]['img_nums'] = isset($array[$v['p_id']]) ? $array[$v['p_id']][1] : 0;//照片数量
                 $carsListsInfo[$k]['img_url'] = isset($array[$v['p_id']]) ? $array[$v['p_id']][0] : '';//图片地址
@@ -434,6 +435,40 @@ class PhotoController extends Controller
        $carsInfo = array(
            'p_id' => $pId
        );
+        if($imagesUrl){
+            //转化成一维数组
+            $imagesList = getSubByKey($imagesUrl,'image_path');
+            $carsInfo['images_list'] =  $imagesList;
+            $data = array(
+                'code' => 0,
+                'msg' => '获取成功',
+                'data' => $carsInfo
+            );
+            return json($data);
+        }else{
+            $data = array(
+                'code' => 1,
+                'msg' => '获取失败'
+            );
+            return json($data);
+        }
+    }
+    /**
+     * 删除微信照片和视频
+     *
+     * @param  int  $id
+     * @return \think\Response
+     */
+    public function deletePhotoResource()
+    {
+        $pId = request()->param('p_id');//机源id
+        if(!$pId){
+            return json(config('weixin.common')[2]);//缺少必要参数
+        }
+        $imagesUrl = Db::name('cars_images')->where('p_id',$pId)->field('image_path')->select();
+        $carsInfo = array(
+            'p_id' => $pId
+        );
         if($imagesUrl){
             //转化成一维数组
             $imagesList = getSubByKey($imagesUrl,'image_path');
