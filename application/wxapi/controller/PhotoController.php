@@ -176,7 +176,7 @@ class PhotoController extends Controller
         $limit = 10;
         $offset = ($p-1)*$limit;
         if($keyword){
-            $where .= " and p_allname like %'{$keyword}'%";
+            $where .= " and p_allname like '%{$keyword}%'";
         }
         $type = $pType ? intval($pType) : 0;
         if($type){
