@@ -211,6 +211,8 @@ class UserController extends Controller
          if(!$data){
              return json(config('weixin.return_info')[10]);
          }
+         $cid = $data['cid'];
+         $aid = $data['aid'];
          $cityName = Db::name('city')->where('city_id',$data['cid'])->value('city_name');
          $provName = Db::name('province')->where('prov_id',$data['aid'])->value('prov_name');
          $mainBrand = explode(',',$data['main_brand']);
@@ -225,6 +227,8 @@ class UserController extends Controller
          }
          $cityName = '';
          $provName = '';
+         $cid = 0;
+         $aid = 0;
          $mainBrand = [];
          $receiverType = [];
          $mobile = $data['auth_mobile'];
@@ -240,7 +244,9 @@ class UserController extends Controller
              'receiver_type' => $receiverType,
              'mobile' => $mobile,
              'name' => $name,
-             'head_img' => $headImg
+             'aid' => $aid,
+             'cid' => $cid,
+             'head_img' => $headImg,
          )
      );
      return json($returnData);
