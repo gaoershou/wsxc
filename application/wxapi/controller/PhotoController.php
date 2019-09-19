@@ -207,7 +207,6 @@ class PhotoController extends Controller
             );
 
             return json($resData);
-
     }
     /**
      * 首页获取相册信息
@@ -245,7 +244,7 @@ class PhotoController extends Controller
             'nickname' => $weixinInfo['nickname'],
             'mobile' => $userInfo['mobilephone']
         );
-        $carsListsInfo = Db::name('cars')->where($where)->field('p_id,p_type,p_allname,p_price')->limit($offset,$limit)->select();
+        $carsListsInfo = Db::name('cars')->where($where)->field('p_id,p_type,p_allname,p_price')->order('p_addtime desc')->limit($offset,$limit)->select();
         if($carsListsInfo){
             //图片拼接
             $p_id = getSubByKey($carsListsInfo, 'p_id');
@@ -299,7 +298,7 @@ class PhotoController extends Controller
         $pType = $request->param('p_type');
         $trans = $request->param('status');//是否转发
         $trans = $trans ? intval($trans) : 0; //0否1转发
-        $where = "from_type = 1 and uid = {$tokenInfo['u_id']} and is_trans = {$trans}";
+        $where = "p_is_del = 0 and from_type = 1 and uid = {$tokenInfo['u_id']} and is_trans = {$trans}";
         $p = $p ? intval($p) : 1;//分页，默认是1
         $limit = 10;
         $offset = ($p-1)*$limit;
@@ -309,7 +308,7 @@ class PhotoController extends Controller
             $where .= " and p_type = {$type}";
         }
         $filed = 'p_allname,p_price,p_year,p_type,p_hours,p_hits,p_id,p_addtime,p_is_sold_out,remarks,thumbs_up,transfer_deposit';
-        $carsListsInfo = Db::name('cars')->where($where)->field($filed)->limit($offset,$limit)->select();
+        $carsListsInfo = Db::name('cars')->where($where)->field($filed)->order('p_addtime desc')->limit($offset,$limit)->select();
         if($carsListsInfo){
             //图片拼接
             $p_id_str = getSubStrByKey($carsListsInfo,'p_id');
@@ -669,7 +668,7 @@ class PhotoController extends Controller
             }
         }else{//取消点赞
             if(!$ret){
-                json(config('weixin.photo')[1]);//您已经点过赞不能重复点赞
+                json(config('weixin.photo')[1]);//您还没有点赞不能取消点赞
             }
             $res = Db::name('cars_thumbs_record')->where($where)->delete();
             if($res){
@@ -705,7 +704,7 @@ class PhotoController extends Controller
             return json(config('weixin.common')[2]);//缺少必要参数
         }
         $filed = "p_id,uid,p_hits,p_tel,thumbs_up,p_username,p_tel,p_addtime,p_listtime,transfer_deposit,p_type";
-        $carsWhere = "from_type = 1 and p_id = {$pId}";
+        $carsWhere = "p_is_del = 0 and from_type = 1 and p_id = {$pId}";
         $carsInfo = Db::name('cars')->where($carsWhere)->field($filed,true)->find();//获取车源信息
         if(!$carsInfo){
             return json(config('weixin.photo')[5]);
@@ -753,7 +752,8 @@ class PhotoController extends Controller
         );
         $res = Db::name('cars_thumbs_record')->insert($data);
         if($res){
-            return json(array('code'=>0,'msg'=>'转存成功！'));
+            $returnData = array('code'=>0,'msg'=>'转存成功','p_id'=>$newPid);
+            return json($returnData);
         }else{
             return json(config('weixin.photo')[3]);//操作失败
         }
