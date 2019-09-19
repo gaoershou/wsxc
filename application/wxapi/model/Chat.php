@@ -206,7 +206,7 @@ class Chat extends Model
     private static function selectMemebersByUserids($ids)
     {
         $membersData = Db::name('member')
-            ->field('id, legalname, logo,default_logo')
+            ->field('id, legalname, logo,default_logo,main_brand, receiver_type')
             ->where('id in ('.$ids.')')
             ->select();
 
