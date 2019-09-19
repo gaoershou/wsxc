@@ -34,6 +34,11 @@ class Chat extends Model
                 $data[$index] = $oneListData;
                 $toUserIds[]  = $oneListData['touserid'];
                 $machineIds[] = $oneListData['machineid'];
+
+                $noreadTable = 'wsxc_chathistory_noread_nums:userid'.$userid.'_touserid'.$oneListData['touserid'].'_machineid'.$oneListData['machineid'];
+
+                $nums = Redis::get($noreadTable) ? Redis::get($noreadTable) : 0;
+                $data[$index]['noreadNums'] = $nums;
             }
 
             $membersData  = self::selectMemebersByUserids(@implode(',', $toUserIds));
@@ -68,6 +73,11 @@ class Chat extends Model
                 $data[$index] = $oneListData;
                 $userIds[]  = $oneListData['userid'];
                 $machineIds[] = $oneListData['machineid'];
+
+                $noreadTable = 'wsxc_chathistory_noread_nums:userid'.$userid.'_touserid'.$oneListData['userid'].'_machineid'.$oneListData['machineid'];
+
+                $nums = Redis::get($noreadTable) ? Redis::get($noreadTable) : 0;
+                $data[$index]['noreadNums'] = $nums;
             }
 
             $membersData  = self::selectMemebersByUserids(@implode(',', $userIds));
