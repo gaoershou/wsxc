@@ -118,7 +118,8 @@ class Chat extends Model
         return $result;
     }
 
-    public static function readChathistoryData($userid, $touserid, $machineid){
+    public static function readChathistoryData($userid, $touserid, $machineid)
+    {
         $table = 'wsxc_chathistory_noread_nums:userid'.$userid.'_touserid'.$touserid.'_machineid'.$machineid;
 
         $result = [
@@ -132,6 +133,70 @@ class Chat extends Model
            $r =  Redis::deleteTable($table);
 
            $result['data'] = $r;
+        }
+
+        return $result;
+
+    }
+
+    public static function deleteConcatMysel($userid, $touserid, $machineid,$muserid)
+    {
+        $table = 'wsxc_contact_record_myself:userId'.$userid;
+
+        $deleteValue = [
+            'userid'    => $userid,
+            'touserid'  => $touserid,
+            'machineid' => $machineid,
+            'muserid'   => $muserid,
+        ];
+
+        $result = [
+            'status' => 'success',
+            'code'   => 0,
+            'message'=> '成功',
+            'data'   => true,
+        ];
+
+        $deleteValue = json_encode($deleteValue);
+
+        $r = Redis::zrem($table, $deleteValue);
+
+        if (!$r) {
+            $result['status'] = 'error';
+            $result['data']   = false;
+            $result['message']   = 'error';
+        }
+
+        return $result;
+
+    }
+
+    public static function deleteConcatOther($userid, $touserid, $machineid,$muserid)
+    {
+        $table = 'wsxc_contact_record_other:userId'.$userid;
+
+        $deleteValue = [
+            'userid'    => $touserid,
+            'touserid'  => $userid,
+            'machineid' => $machineid,
+            'muserid'   => $muserid,
+        ];
+
+        $result = [
+            'status' => 'success',
+            'code'   => 0,
+            'message'=> '成功',
+            'data'   => true,
+        ];
+
+        $deleteValue = json_encode($deleteValue);
+
+        $r = Redis::zrem($table, $deleteValue);
+
+        if (!$r) {
+            $result['status'] = 'error';
+            $result['data']   = false;
+            $result['message']   = 'error';
         }
 
         return $result;

@@ -119,4 +119,38 @@ class Chat extends Validate
         return $result;
     }
 
+    public static function checkDeleteRequest($request)
+    {
+        $result = [
+            'status'  => 'success',
+            'code'    => 0,
+            'message' => '成功',
+            'data'    => [],
+        ];
+
+        $params = $request->post();
+
+        if (!$request->isPost()){
+            $result['status']  = 'error';
+            $result['code']    = 4001;
+            $result['message'] ='非法的请求';
+
+            return $result;
+
+        } else if (!isset($params['userid']) || !isset($params['touserid']) || !isset($params['machineid']) || !isset($params['muserid']) ) {
+            $result['status']  = 'error';
+            $result['code']    = 4002;
+            $result['message'] ='参数错误';
+
+            return $result;
+        }
+
+        $result['data']['userid']    = $params['userid'];
+        $result['data']['touserid']  = $params['touserid'];
+        $result['data']['machineid'] = $params['machineid'];
+        $result['data']['muserid']   = $params['muserid'];
+
+        return $result;
+    }
+
 }

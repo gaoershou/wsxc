@@ -83,6 +83,12 @@ class ChatController extends Controller
         return json($data);
     }
 
+    /**
+     * 聊天记录已读
+     * @param userid    int  当前用户id
+     * @param touserid  int  配沟通用户id
+     * @param machineid int  机源id
+     */
     public function readChatHistory()
     {
         $request = request();
@@ -98,6 +104,60 @@ class ChatController extends Controller
         $machineid = $chatVilidateResult['data']['machineid'];
 
         $data = ChatModel::readChathistoryData($userid, $touserid, $machineid);
+
+        return json($data);
+    }
+
+    /**
+     * 删除我的联系
+     * @param userid    int  当前用户id
+     * @param touserid  int  配沟通用户id
+     * @param machineid int 机源id
+     * @param muserid   int  机源所属用户id
+     */
+    public function deleteConcatMysel()
+    {
+        $request = request();
+
+        $chatVilidateResult = ChatValidate::checkDeleteRequest($request);
+
+        if ($chatVilidateResult['status'] == 'error') {
+            return json($chatVilidateResult);
+        }
+
+        $userid    = $chatVilidateResult['data']['userid'];
+        $touserid  = $chatVilidateResult['data']['touserid'];
+        $machineid = $chatVilidateResult['data']['machineid'];
+        $muserid   = $chatVilidateResult['data']['muserid'];
+
+        $data = ChatModel::deleteConcatMysel($userid, $touserid, $machineid, $muserid);
+
+        return json($data);
+    }
+
+    /**
+     * 删除联系我的
+     * @param userid    int  当前用户id
+     * @param touserid  int  配沟通用户id
+     * @param machineid int 机源id
+     * @param muserid   int  机源所属用户id
+     */
+    public function deleteConcatOther()
+    {
+        $request = request();
+
+        $chatVilidateResult = ChatValidate::checkDeleteRequest($request);
+
+        if ($chatVilidateResult['status'] == 'error') {
+            return json($chatVilidateResult);
+        }
+
+        $userid    = $chatVilidateResult['data']['userid'];
+        $touserid  = $chatVilidateResult['data']['touserid'];
+        $machineid = $chatVilidateResult['data']['machineid'];
+        $muserid   = $chatVilidateResult['data']['muserid'];
+
+        $data = ChatModel::deleteConcatOther($userid, $touserid, $machineid, $muserid);
 
         return json($data);
     }

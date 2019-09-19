@@ -18,5 +18,7 @@ Route::group('wxapi', function () {
     Route::post('contactOtherList', 'wxapi/Chat/contactOtherList');
     Route::get('getUserChatHistory', 'wxapi/Chat/getUserChatHistory');
     Route::post('readChatHistory', 'wxapi/Chat/readChatHistory');
+    Route::post('deleteConcatMysel', 'wxapi/Chat/deleteConcatMysel');
+    Route::post('deleteConcatOther', 'wxapi/Chat/deleteConcatOther');
 })->allowCrossDomain();
 

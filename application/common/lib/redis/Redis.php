@@ -105,6 +105,11 @@ class Redis {
         return self::$handler->zRevRange($table, $startNum, $endNum);
     }
 
+    public static function zrem($key, $value)
+    {
+        return self::$handler->zrem($key, $value);
+    }
+
     public static function exists($key)
     {
         return self::$handler->exists($key);
