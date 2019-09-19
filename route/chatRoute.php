@@ -17,5 +17,6 @@ Route::group('wxapi', function () {
     Route::post('contactMyselfList', 'wxapi/Chat/contactMyselfList');
     Route::post('contactOtherList', 'wxapi/Chat/contactOtherList');
     Route::get('getUserChatHistory', 'wxapi/Chat/getUserChatHistory');
+    Route::post('readChatHistory', 'wxapi/Chat/readChatHistory');
 })->allowCrossDomain();
 

@@ -118,6 +118,26 @@ class Chat extends Model
         return $result;
     }
 
+    public static function readChathistoryData($userid, $touserid, $machineid){
+        $table = 'wsxc_chathistory_noread_nums:userid'.$userid.'_touserid'.$touserid.'_machineid'.$machineid;
+
+        $result = [
+            'status' => 'success',
+            'code'   => 0,
+            'message'=> '成功',
+            'data'   => true,
+        ];
+
+        if (Redis::exists($table)){
+           $r =  Redis::deleteTable($table);
+
+           $result['data'] = $r;
+        }
+
+        return $result;
+
+    }
+
     private static function selectMemebersByUserids($ids)
     {
         $membersData = Db::name('member')

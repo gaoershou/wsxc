@@ -104,4 +104,14 @@ class Redis {
     public static function zrevrange($table, $startNum, $endNum){
         return self::$handler->zRevRange($table, $startNum, $endNum);
     }
+
+    public static function exists($key)
+    {
+        return self::$handler->exists($key);
+    }
+
+    public static function deleteTable($key)
+    {
+        return self::$handler->del($key);
+    }
 }

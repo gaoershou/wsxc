@@ -83,4 +83,23 @@ class ChatController extends Controller
         return json($data);
     }
 
+    public function readChatHistory()
+    {
+        $request = request();
+
+        $chatVilidateResult = ChatValidate::checkReadHistoryRequest($request);
+
+        if ($chatVilidateResult['status'] == 'error') {
+            return json($chatVilidateResult);
+        }
+
+        $userid    = $chatVilidateResult['data']['userid'];
+        $touserid  = $chatVilidateResult['data']['touserid'];
+        $machineid = $chatVilidateResult['data']['machineid'];
+
+        $data = ChatModel::readChathistoryData($userid, $touserid, $machineid);
+
+        return json($data);
+    }
+
 }
