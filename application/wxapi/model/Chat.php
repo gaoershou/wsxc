@@ -63,7 +63,8 @@ class Chat extends Model
             'data'   => [],
         ];
 
-        $data = Redis::zrevrange($table, 0, -1);
+        // $data = Redis::zrevrange($table, 0, -1, false);
+        $data = Redis::zrevrangeWithScorse($table, 0, -1);
 
         if ($data && !empty($data)){
             $userIds  = [];
@@ -78,6 +79,8 @@ class Chat extends Model
 
                 $nums = Redis::get($noreadTable) ? Redis::get($noreadTable) : 0;
                 $data[$index]['noreadNums'] = $nums;
+                $time = floor($oneListData['last_chat_time']/1000);
+                $data[$index]['last_chat_time'] = date("Y-m-d H:i:s", $time);
             }
 
             $membersData  = self::selectMemebersByUserids(@implode(',', $userIds));

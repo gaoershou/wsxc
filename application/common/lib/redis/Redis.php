@@ -105,6 +105,21 @@ class Redis {
         return self::$handler->zRevRange($table, $startNum, $endNum);
     }
 
+    // 带score的取值
+    public static function zrevrangeWithScorse($table, $startNum, $endNum, $type=true){
+        $data = self::$handler->zRevRange($table, $startNum, $endNum, $type);
+
+        $returnData = [];
+        foreach ($data as $key => $value) {
+            $formatData = json_decode($key, true);
+            $formatData['last_chat_time'] = $value;
+
+            $returnData[] = json_encode($formatData);
+        }
+
+        return $returnData;
+    }
+
     public static function zrem($key, $value)
     {
         return self::$handler->zrem($key, $value);
