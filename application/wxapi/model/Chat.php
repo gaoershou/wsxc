@@ -63,7 +63,6 @@ class Chat extends Model
             'data'   => [],
         ];
 
-        // $data = Redis::zrevrange($table, 0, -1, false);
         $data = Redis::zrevrangeWithScorse($table, 0, -1);
 
         if ($data && !empty($data)){
