@@ -367,6 +367,7 @@ class PhotoController extends Controller
             return json(config('weixin.common')[2]);//缺少必要参数
         }
         $shareId = request()->param('share_id');
+        $is_thumbs = 0;//是否点过赞
         if($shareId){//分享id说明浏览过了
             $data = array(
                 'pid' => intval($pId),
@@ -382,9 +383,11 @@ class PhotoController extends Controller
             if($res){
                 Db::name('cars')->where('p_id',$pId)->setInc('p_hits',1);//浏览数加1
             }
+            $count = Db::name('cars_thumbs_record')->where("type = 2 and uid={$uid} and pid = {$pId}")->count('id');
+            $is_thumbs = $count > 0 ? $count : 0;
         }
 
-        $filed = 'p_certificate,p_is_sold_out,p_invoice,p_clear,p_price,p_hammer,p_allname,p_price,p_year,p_declaration,p_pipeline,p_hours,p_details,p_type,thumbs_up,p_hits,transfer_deposit,operating_type';
+        $filed = 'p_id,p_certificate,p_is_sold_out,p_invoice,p_clear,p_price,p_hammer,p_allname,p_price,p_year,p_declaration,p_pipeline,p_hours,p_details,p_type,thumbs_up,p_hits,transfer_deposit,operating_type';
         //获取机源信息
         $where = "from_type = 1 and p_id = {$pId}";
         $carsInfo = Db::name('cars')->where($where)->field($filed)->find();
@@ -420,7 +423,7 @@ class PhotoController extends Controller
             $carsInfo['videos_list'] =  $videosList;
             $carsInfo['head_img'] = $shareId ? Db::name('member')->where('id',$shareId)->value('default_logo') :'';
             $carsInfo['is_transfer'] = $is_transfer>0 ? 1 :0;
-
+            $carsInfo['is_thumbs'] = $is_thumbs; //是否点过赞
             $data = array(
                 'code' => 0,
                 'msg' => '获取成功',
@@ -658,7 +661,8 @@ class PhotoController extends Controller
                     $returnData = array(
                         'code' => 0,
                         'msg' => '点赞成功！',
-                        'thumbs_up' => $nums
+                        'thumbs_up' => $nums,
+                        'type' => 2//点赞
                     );
                     return json($returnData);
                 }else{
@@ -677,7 +681,8 @@ class PhotoController extends Controller
                 $returnData = array(
                     'code' => 0,
                     'msg' => '取消点赞成功！',
-                    'thumbs_up' => $nums
+                    'thumbs_up' => $nums,
+                    'type' => 1 //取消点赞
                 );
                 return json($returnData);
             }else{
