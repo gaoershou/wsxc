@@ -5,7 +5,8 @@ namespace app\wxapi\controller;
 use think\Controller;
 use think\Request;
 use think\Db;
-
+use Qiniu\Storage\UploadManager;
+use Qiniu\Auth;
 class CommonController extends Controller
 {
     /**
@@ -273,15 +274,90 @@ class CommonController extends Controller
         $domain = request()->domain();
         var_dump($domain);
     }
-
     /**
-     * 删除指定资源
+     * 上传图片
      *
      * @param  int  $id
      * @return \think\Response
      */
-    public function delete($id)
+    public function uploadImg()
     {
-        //
+
+        $file = request()->file('file');
+        $savePath = $_SERVER['DOCUMENT_ROOT']."/uploads/";//1图
+        $randStr = mt_rand(10000, 99999);
+
+        $info = $file->validate(['size'=>1000000,'ext'=>'jpg,png,gif,jpeg'])->rule('date')->move($savePath);//移动图片
+        if($info){
+            //新文件名
+            $key = $info->getFilename();//文件名称
+            $filePath = $info->getRealPath();//文件保存路径
+            $upManager = new UploadManager();
+            $auth = new Auth(config('qiniu.accessKey'), config('qiniu.secretKey'));
+            $index = mt_rand(0,2);
+            $bucketName = config('qiniu.bucket')[0][$index]['bucket_name'];
+            $domain = config('qiniu.bucket')[0][$index]['domain']; //域名
+            $token = $auth->uploadToken($bucketName);
+            list($ret, $error) = $upManager->putFile($token,$key,$filePath);
+            //删除图片
+            if(file_exists($filePath)){
+                unset($info);
+                unlink($filePath);  //删除文件
+            }
+            if(!$error){//有结果
+                $data = array(
+                    'error' => 0,
+                    'url' => $domain.$ret['key']
+                );
+                return json($data);
+            }else{//无结果
+                return json(config('weixin.upload')[3]);
+            }
+        }else{
+            return json(array('code'=>-1,'msg'=>$file->getError()));
+        }
+
+
+    }
+    /**
+     * 上传视频
+     *
+     * @param  int  $id
+     * @return \think\Response
+     */
+    public function uploadVideo()
+    {
+        $file = request()->file('file');
+        $savePath = $_SERVER['DOCUMENT_ROOT']."/uploads/";//路径
+        $info = $file->validate(['size'=>10000000,'ext'=>'mp4,3gp,m3u8'])->rule('date')->move($savePath);//移动视频
+        if($info){
+            //新文件名
+            $key = $info->getFilename();//文件名称
+            $filePath = $info->getRealPath();//文件保存路径
+            $upManager = new UploadManager();
+            $auth = new Auth(config('qiniu.accessKey'), config('qiniu.secretKey'));
+            $index = mt_rand(0,2);
+            $bucketName = config('qiniu.bucket')[1][$index]['bucket_name'];
+            $domain = config('qiniu.bucket')[1][$index]['domain']; //域名
+            $token = $auth->uploadToken($bucketName);
+            list($ret, $error) = $upManager->putFile($token,$key,$filePath);
+            //删除视频
+            if(file_exists($filePath)){
+                unset($info);
+                unlink($filePath);  //删除视频
+            }
+            if(!$error){//有结果
+                $data = array(
+                    'error' => 0,
+                    'url' => $domain.$ret['key']
+                );
+                return json($data);
+            }else{//无结果
+                return json(config('weixin.upload')[3]);
+            }
+        }else{
+            return json(array('code'=>-1,'msg'=>$file->getError()));
+        }
+
     }
 }

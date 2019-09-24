@@ -14,7 +14,8 @@ Route::get('wxapi/test', 'wxapi/Common/test')->allowCrossDomain();//测试代码
 Route::get('wxapi/getProvince', 'wxapi/Common/getProvince')->allowCrossDomain();//获取省级数据
 Route::get('wxapi/getProvinceAndCity', 'wxapi/Common/getProvinceAndCity')->allowCrossDomain();//获取省级数据
 Route::post('wxapi/getCity', 'wxapi/Common/getCity')->allowCrossDomain();//获取市级数据
-
+Route::post('uploadImg', 'wxapi/Common/uploadImg')->allowCrossDomain();//上传图片
+Route::post('uploadVideo', 'wxapi/Common/uploadVideo')->allowCrossDomain();//上传视频
 Route::group('wxapi', function () {
     Route::post('editMemberInfo', 'wxapi/User/editMemberInfo');
     Route::post('getUserInfo', 'wxapi/User/getUserInfo');

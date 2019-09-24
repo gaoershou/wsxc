@@ -525,7 +525,7 @@ class PhotoController extends Controller
         if(!$pId || !$page || !$pic_list || !$uid){
             return json(config('weixin.common')[2]);//缺少必要参数
         }
-        $scene = "id={$pId}&u_id={$uid}";
+        $scene = $pId."*".$uid;
         $where = "from_type = 1 and p_id = {$pId}";
         $imageArr = explode(',',$pic_list);//分割成数组
         if(count($imageArr) == 1 || count($imageArr) == 4 || count($imageArr) == 9) {//判断只生成1,4,9张图片
