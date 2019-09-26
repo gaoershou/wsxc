@@ -16,26 +16,21 @@ class UserController extends Controller
      * @return \think\Response
      */
     public function login()
-    {//olrq41RciXtoGtI_FtwRMynyIJjw
-        //获取登录的信息
+    {
         $requestData = request()->post();
-       $code = $requestData['code'];
+        $code = $requestData['code'];
         $encryptedData = $requestData['encryptedData'];
         $iv = $requestData['iv'];
         $authMobile = $requestData['mobile'];
-         $wxappObj = Wxapp::getInstance(config('weixin.wmxc_app'),config('weixin.wmxc_secrect'));
+        $wxappObj = Wxapp::getInstance(config('weixin.wmxc_app'),config('weixin.wmxc_secrect'));
        //过滤参数Validate::checkRule($value,'must|email');静态调用验证
-       $wxappInfo = $wxappObj->oauth2_access_token($code);
+        $wxappInfo = $wxappObj->oauth2_access_token($code);
         if(array_key_exists('errcode',$wxappInfo)){
             return json($wxappInfo);
         }else{
             $sessionKey = $wxappInfo['session_key'];
         }
 
-
-//        $sessionKey = "vvEffpMsDvLnVyfHdhJdXA==";
-//        $encryptedData = "2HSvh/cof4OvrQAeL6dTfVfrCno6VAOc0VzXepJctAJ/kuJmohzV/+UPIjV1FPnOLqd8pE0hb0pQLD8mRvEMCEvpjLIXvQY8wCA/JSd1eyCZMhUo62Ozylmbq8jyXHLkHhrxeSUPHm1c8RMf7zfrhDXixSYzq2EAQ/2lI++vqaNCUbDjm0gdP6nUS6o1eQ01werJ0d38JDi7geg9gQShy33s3tEo7BwXKKZ28WhopPgmlO9xTxYrfC5JxmIDZPPmZ8rceYHgQ2B9dAMUlvu9BErWdfvGrHhdI5SLTlvwR02x3aSPWgLMy6cwqQKPGfOYGGNc1ViWGCfnaYWauwW8LAgEbnT/270ZJBeiEXTDESA2oJmj8RijxuzRh+fes8dSgr6bcvlwvfv6v0lHsdIbBZwwLTVhydSAfpNyS7uU7aelIKxku6ppZPJet2PsEjRsE7xywZaJx9C3PsGCKo3kH1NCzg/q9YeYbbAZVN/pRg4=";
-//        $iv = "Cgh366zEb0kepoy0q9gjwA==";
         $info = $wxappObj->decryptData($sessionKey,$encryptedData,$iv);
         if(!$info){
             return json(config('weixin.return_info')[8]);
@@ -211,15 +206,16 @@ class UserController extends Controller
          if(!$data){
              return json(config('weixin.return_info')[10]);
          }
+
          $cid = $data['cid'];
          $aid = $data['aid'];
          $cityName = Db::name('city')->where('city_id',$data['cid'])->value('city_name');
          $provName = Db::name('province')->where('prov_id',$data['aid'])->value('prov_name');
-         $mainBrand = explode(',',$data['main_brand']);
-         $receiverType = explode(',',$data['receiver_type']);
+         $mainBrand = $data['main_brand']?explode(',',$data['main_brand']):[];
+         $receiverType = $data['receiver_type']?explode(',',$data['receiver_type']):[];
          $mobile = $data['mobilephone'];
          $name = $data['legalname'];
-         $headImg = $data['default_logo'];
+         $headImg = $data['default_logo'] ? $data['default_logo'] : Db::name('member_weixin')->where('uid',$tokenInfo['u_id'])->value('headimgurl');
      }else{
          $data = Db::name('member_weixin')->where('unionid',$tokenInfo['unionid'])->field('nickname,headimgurl,auth_mobile')->find();
          if(!$data){
@@ -235,11 +231,18 @@ class UserController extends Controller
          $name = $data['nickname'];
          $headImg = $data['headimgurl'];
      }
+     if($cityName && $provName){
+         $provAndCity = $provName.'-'.$cityName;
+     }elseif (!$cityName && !$provName){
+         $provAndCity = '';
+     }else{
+         $provAndCity = $provName.$cityName;
+     }
      $returnData = array(
          'code' => 0,
          'msg'  => '成功获取数据',
          'data' => array(
-             'city_name' => $provName.'-'.$cityName,
+             'city_name' => $provAndCity,
              'main_brand' => $mainBrand,
              'receiver_type' => $receiverType,
              'mobile' => $mobile,
