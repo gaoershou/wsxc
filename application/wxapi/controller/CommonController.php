@@ -7,6 +7,7 @@ use think\Request;
 use think\Db;
 use Qiniu\Storage\UploadManager;
 use Qiniu\Auth;
+use think\facade\Cache;
 class CommonController extends Controller
 {
     /**
@@ -273,11 +274,12 @@ class CommonController extends Controller
 //        $domain = request()->root(true);
 //        $domain = request()->domain();
 //        var_dump($domain);
-        $token = 'e64643d2cbc866a74a861525b161351d989e06f4';
-        $mcKey = config('weixin.cache_prefix').$token;
-        //根据token获取用户的信息
-        $tokenInfo = cache($mcKey);
-        var_dump($tokenInfo);die();
+//        $token = 'e64643d2cbc866a74a861525b161351d989e06f4';
+//        $mcKey = config('weixin.cache_prefix').$token;
+//        //根据token获取用户的信息
+//        $tokenInfo = cache($mcKey);
+//        var_dump($tokenInfo);die();
+        Cache::clear();
 
     }
     /**
