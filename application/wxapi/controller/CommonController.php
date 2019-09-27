@@ -271,8 +271,14 @@ class CommonController extends Controller
 //        var_dump($carsListsInfo);
 //        $root = $_SERVER['DOCUMENT_ROOT'];
 //        $domain = request()->root(true);
-        $domain = request()->domain();
-        var_dump($domain);
+//        $domain = request()->domain();
+//        var_dump($domain);
+        $token = 'e64643d2cbc866a74a861525b161351d989e06f4';
+        $mcKey = config('weixin.cache_prefix').$token;
+        //根据token获取用户的信息
+        $tokenInfo = cache($mcKey);
+        var_dump($tokenInfo);die();
+
     }
     /**
      * 上传图片
