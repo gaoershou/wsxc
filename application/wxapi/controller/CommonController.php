@@ -122,22 +122,31 @@ class CommonController extends Controller
      */
     public function selectCateList(Request $request)
     {
-        $firstCateList =Db::name('cars_category')->where('is_show=0 AND parent_id=0')->field('id,name')->order('sort_order asc')->select();
-        if (!$firstCateList) {
-            return json(config('weixin.common')[4]);
+        $firstCateListCache = Cache::store('redis')->get(config('weixin.cate_list'));
+        if($firstCateListCache){
+            $firstCateList = $firstCateListCache;
+        }else{
+            $firstCateList =Db::name('cars_category')->where('is_show=0 AND parent_id=0')->field('id,name')->order('sort_order asc')->select();
+            if (!$firstCateList) {
+                return json(config('weixin.common')[4]);
 
-        } else {
-            foreach($firstCateList as $key=>&$value) {
-                $secondCateList = Db::name('cars_category')->where('is_show=0 AND parent_id=' . $value['id'])->field('id, name')->order('sort_order asc')->select();
-                $value['second_cate_list'] = $secondCateList ? $secondCateList : array();
+            } else {
+                foreach($firstCateList as $key=>&$value) {
+                    $secondCateList = Db::name('cars_category')->where('is_show=0 AND parent_id=' . $value['id'])->field('id, name')->order('sort_order asc')->select();
+                    $value['second_cate_list'] = $secondCateList ? $secondCateList : array();
+                }
+                // 使用Redis缓存
+                Cache::store('redis')->set(config('weixin.cate_list'),$firstCateList,36000);
+
             }
-            $data = array(
-                'code' => 0,
-                'msg'  => '获取数据成功',
-                'data' => $firstCateList
-            );
-            return json($data);
         }
+
+        $data = array(
+            'code' => 0,
+            'msg'  => '获取数据成功',
+            'data' => $firstCateList
+        );
+        return json($data);
     }
 
     /**
@@ -247,7 +256,19 @@ class CommonController extends Controller
 
 
     }
-
+/*
+ * 无限极分类数据
+ */
+    public function categoryList($arrs,$pid=0){
+        static $categorys = array();
+        foreach ($arrs as $arr){
+            if($arr['pid'] == $pid){
+                $categorys[] = $arr;
+                $this->categoryList($arrs,$arr['id']);
+            }
+        }
+        return $categorys;
+    }
 
     /*
   * 代码测试
@@ -279,7 +300,7 @@ class CommonController extends Controller
 //        //根据token获取用户的信息
 //        $tokenInfo = cache($mcKey);
 //        var_dump($tokenInfo);die();
-        Cache::clear();
+      echo phpinfo();
 
     }
     /**

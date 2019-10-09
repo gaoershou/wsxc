@@ -14,6 +14,7 @@ return [
     'cache_prefix' => 'ppjixie2019',//token缓存前缀
     'prov_prefix' => 'province_arr',
     'pro_and_city' => 'pro_and_city',
+    'cate_list' => 'cate_list',//分类
     'brand_cars' => array(
         'all_frist' => 'all_brand_frist',//设备所有品牌
         'all_recom' => 'all_brand_recom',//设备热门品牌
