@@ -398,11 +398,10 @@ class CommonController extends Controller
      */
     public function getPreviewPdf2png()
     {
-//        $path = $_SERVER['DOCUMENT_ROOT'].'/uploads/';
-//        $url = "https://esignoss.esign.cn/1111564182/b53d7cb8-9b6c-486d-8f1f-6ebe2c6d2ec1/esign_doc_b844cb5a24de4400a81bafb245e4559b4229074004163225882.pdf.pdf?Expires=1572948268&OSSAccessKeyId=LTAIdvHfiVrzDKbE&Signature=UHSLYaxBeBsmcl/mW2EeJXXgc20%3D";
-//        //获取远程图片转化成pdf文件
-//        $pdf = getUrlFile($url,$path,'.pdf');
-        $pdf = '/home/www/wsxc/public/uploads/1572945368449.pdf';
+        $path = $_SERVER['DOCUMENT_ROOT'].'/uploads/';
+        $url = "https://esignoss.esign.cn/1111564182/b53d7cb8-9b6c-486d-8f1f-6ebe2c6d2ec1/esign_doc_b844cb5a24de4400a81bafb245e4559b4229074004163225882.pdf.pdf?Expires=1572948268&OSSAccessKeyId=LTAIdvHfiVrzDKbE&Signature=UHSLYaxBeBsmcl/mW2EeJXXgc20%3D";
+        //获取远程图片转化成pdf文件
+        $pdf = getUrlFile($url,$path,'.pdf');
         $pathUrl = pdf2png($pdf);
         var_dump($pathUrl);
 
