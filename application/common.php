@@ -825,6 +825,21 @@ function checkUserCardId($cardid)
     }
     return true;
 }
+/*
+   * 将远程文件保存到本地
+   */
+function getUrlFile($url,$path,$extension){
+    $file = file_get_contents($url);
+    $fileName = time().mt_rand(0,1000).$extension;
+    $filePath = $path.$fileName;
+    file_put_contents($filePath,$file);
+    if(file_exists($filePath))
+    {
+        return $fileName;
+    }else{
+        return false;
+    }
+}
 /**
  * 将pdf转化为单一png图片
  * @param string $pdf  pdf所在路径 （/www/pdf/abc.pdf pdf所在的绝对路径）
@@ -869,19 +884,5 @@ function pdf2png($pdf)
     } catch (Exception $e) {
         throw $e;
     }
-    /*
-   * 将远程文件保存到本地
-   */
-    function getUrlFile($url,$path,$extension){
-        $file = file_get_contents($url);
-        $fileName = time().mt_rand(0,1000).$extension;
-        $filePath = $path.$fileName;
-        file_put_contents($filePath,$file);
-        if(file_exists($filePath))
-        {
-            return $fileName;
-        }else{
-            return false;
-        }
-    }
+
 }
