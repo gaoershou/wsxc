@@ -835,7 +835,7 @@ function getUrlFile($url,$path,$extension){
     file_put_contents($filePath,$file);
     if(file_exists($filePath))
     {
-        return $fileName;
+        return $filePath;
     }else{
         return false;
     }
