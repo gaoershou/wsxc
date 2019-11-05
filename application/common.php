@@ -825,3 +825,63 @@ function checkUserCardId($cardid)
     }
     return true;
 }
+/**
+ * 将pdf转化为单一png图片
+ * @param string $pdf  pdf所在路径 （/www/pdf/abc.pdf pdf所在的绝对路径）
+ * @param string $path 新生成图片所在路径 (/www/pngs/)
+ *
+ * @throws Exception
+ */
+function pdf2png($pdf)
+{
+    try {
+        $im = new Imagick();
+        $im->setCompressionQuality(100);
+        $im->setResolution(120, 120);//设置分辨率 值越大分辨率越高
+        $im->readImage($pdf);
+        $canvas = new Imagick();
+        $imgNum = $im->getNumberImages();
+        //$canvas->setResolution(120, 120);
+        foreach ($im as $k => $sub) {
+            $sub->setImageFormat('png');
+            //$sub->setResolution(120, 120);
+            $sub->stripImage();
+            $sub->trimImage(0);
+            $width  = $sub->getImageWidth() + 10;
+            $height = $sub->getImageHeight() + 10;
+            if ($k + 1 == $imgNum) {
+                $height += 10;
+            } //最后添加10的height
+            $canvas->newImage($width, $height, new ImagickPixel('white'));
+            $canvas->compositeImage($sub, Imagick::COMPOSITE_DEFAULT, 5, 5);
+        }
+        $canvas->resetIterator();
+        $fileName = time() . '.png';
+        if (file_exists($fileName)) {
+            unlink($fileName);
+        }
+        $canvas->appendImages(true)->writeImage($fileName);//是否追加到大的图片
+        if (file_exists($fileName)) {
+            return $fileName;
+        }else{
+            return false;
+        }
+    } catch (Exception $e) {
+        throw $e;
+    }
+    /*
+   * 将远程文件保存到本地
+   */
+    function getUrlFile($url,$path,$extension){
+        $file = file_get_contents($url);
+        $fileName = time().mt_rand(0,1000).$extension;
+        $filePath = $path.$fileName;
+        file_put_contents($filePath,$file);
+        if(file_exists($filePath))
+        {
+            return $fileName;
+        }else{
+            return false;
+        }
+    }
+}

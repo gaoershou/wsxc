@@ -10,6 +10,7 @@
 // +----------------------------------------------------------------------
 
 Route::post('wxapi/login','wxapi/User/login')->allowCrossDomain();//登录
+Route::get('getPreviewPdf2png','wxapi/Common/getPreviewPdf2png')->allowCrossDomain();//获取转换的图片
 Route::get('wxapi/test', 'wxapi/Common/test')->allowCrossDomain();//测试代码
 Route::get('wxapi/getProvince', 'wxapi/Common/getProvince')->allowCrossDomain();//获取省级数据
 Route::get('wxapi/getProvinceAndCity', 'wxapi/Common/getProvinceAndCity')->allowCrossDomain();//获取省级数据

@@ -8,6 +8,7 @@ use think\Db;
 use Qiniu\Storage\UploadManager;
 use Qiniu\Auth;
 use think\facade\Cache;
+use app\common\lib\OnlineSign;
 class CommonController extends Controller
 {
     /**
@@ -387,6 +388,19 @@ class CommonController extends Controller
         }else{
             return json(array('code'=>-1,'msg'=>$file->getError()));
         }
+
+    }
+    /**
+     * 将pdf文件转化成图片
+     *
+     * @param  int  $id
+     * @return \think\Response
+     */
+    public function getPreviewPdf2png()
+    {
+        $onlineSignObj = OnlineSign::getInstance();
+        $token = $onlineSignObj->getOnlineSignToken();
+        var_dump($token);
 
     }
 }

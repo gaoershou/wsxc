@@ -31,7 +31,7 @@ return [
         'port' => 6379,
         'password'	=>	'gaoershou',
         // 全局缓存有效期（0为永久有效）
-        'expire'=>  0,
+        'expire'=>  7100,
         // 缓存前缀
         'prefix'=>  'think',
     ],
