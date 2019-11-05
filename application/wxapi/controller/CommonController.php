@@ -401,6 +401,7 @@ class CommonController extends Controller
 
 //        $onlineSignObj = OnlineSign::getInstance();
         $url = config('onlineSign.prefixUrl') . "/v1/oauth2/access_token?appId=".config('onlineSign.projectId')."&secret=".config('onlineSign.projectsecret')."&grantType=client_credentials";
+        var_dump($url);die();
         $authData = http_request($url);
         var_dump(json_decode($authData, true));die();
         if ($authData) {
