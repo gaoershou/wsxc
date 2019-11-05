@@ -847,7 +847,7 @@ function getUrlFile($url,$path,$extension){
  *
  * @throws Exception
  */
-function pdf2png($pdf)
+function pdf2png($pdf,$path)
 {
     try {
         $im = new Imagick();
