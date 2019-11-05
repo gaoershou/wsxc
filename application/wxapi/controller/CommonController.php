@@ -399,17 +399,8 @@ class CommonController extends Controller
     public function getPreviewPdf2png()
     {
 
-//        $onlineSignObj = OnlineSign::getInstance();
-        $url = config('onlineSign.prefixUrl') . "/v1/oauth2/access_token?appId=".config('onlineSign.projectId')."&secret=".config('onlineSign.projectsecret')."&grantType=client_credentials";
-        $authData = http_request($url);
-        var_dump(json_decode($authData, true));die();
-        if ($authData) {
-            $data = json_decode($authData, true);
-            $token = $data['data']['token'];
-//            Cache::store('redis')->set($key,$token,7100);
-        }
-//        $token = $onlineSignObj->getOnlineSignToken();
+       $onlineSignObj = OnlineSign::getInstance();
+       $token = $onlineSignObj->getOnlineSignToken();
         var_dump($token);
-
     }
 }
