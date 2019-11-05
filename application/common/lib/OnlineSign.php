@@ -28,7 +28,7 @@ class OnlineSign {
 
 
     /**
-     * 获取小程序码B方法
+     * 获取e签宝token
      *
      * @param $scene
      * @param $page
