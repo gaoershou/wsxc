@@ -400,7 +400,7 @@ class CommonController extends Controller
     {
         $data = request()->param();
         $data1 =json_decode($data);
-        return json($data1);
+        return json_encode($data1);
         $path = $_SERVER['DOCUMENT_ROOT'].'/uploads/';//文件保存路径
         $onlineSignObj = OnlineSign::getInstance();
         //获取文件地址
