@@ -399,8 +399,7 @@ class CommonController extends Controller
     public function getPreviewPdf2png()
     {
         $data = request()->param();
-        $data1 =json_decode($data,true);
-        return json_encode($data1);
+        return json_encode($data);
         $path = $_SERVER['DOCUMENT_ROOT'].'/uploads/';//文件保存路径
         $onlineSignObj = OnlineSign::getInstance();
         //获取文件地址
