@@ -425,7 +425,7 @@ class CommonController extends Controller
             );
             return json($data);
         }else{//无结果
-            return json(config('weixin.upload')[3]);
+            return json(array('error'=>1));
         }
 
 //
