@@ -414,7 +414,7 @@ class CommonController extends Controller
         $bucketName = config('qiniu.bucket')[1][$index]['bucket_name'];
         $domain = config('qiniu.bucket')[1][$index]['domain']; //域名
         $token = $auth->uploadToken($bucketName);
-        list($ret, $error) = $upManager->putFile($token,$key,$file);
+        list($ret, $error) = $upManager->putFile($token,$key.'.png',$file);
         //删除保存到本地的图片
         @unlink($pdf);
         @unlink($path);
