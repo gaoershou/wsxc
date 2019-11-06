@@ -35,7 +35,7 @@ class OnlineSign {
      * @param int $width
      * @return string
      */
-    public function getOnlineSignToken() {
+    public static function getOnlineSignToken() {
         $key = config('onlineSign.prefix').self::$appid;
         $token = Cache::get($key);
         if (!$token) {
@@ -53,24 +53,43 @@ class OnlineSign {
     }
 
     /**
-     * 获取小程序二维码A方法
+     * 获取携带的token数组
      *
-     * @param $page
-     * @param int $width
      */
-    public function oauth2_get_createwxaqrcode() {
+    public static function getAccessTokenHeader()
+    {
+        $projectId = self::$appid;
+        $token = self::getOnlineSignToken();//获取token
+        $commonData = array("X-Tsign-Open-App-Id: {$projectId}", "X-Tsign-Open-Token: {$token}", "Content-Type:application/json");
+        $data = $commonData ? $commonData : [];
+        return $data;
 
     }
 
+
     /**
+     * 5.2.5查询文件链接地址
      *
-     * @param $code
+     *
+     * @param $filed
      * @return mixed
      */
-    public function oauth2_access_token($code) {
-        $url = "https://api.weixin.qq.com/sns/jscode2session?appid=".self::$appid."&secret=".self::$secrect."&js_code=".$code."&grant_type=authorization_code";
-        $res = http_request($url);
-        return json_decode($res, true);
+    public function selectFileUrl($fileId,$header = '')
+    {
+        if (!$header) {
+            $header = self::getAccessTokenHeader();
+        }
+
+        $url = config('onlineSign.prefixUrl') . "/v1/files/{$fileId}";
+        $result =http_request($url, '',$header);
+        $ret = json_decode($result, true);
+        if ($ret['code'] == 0 || $ret['message'] == '成功') {//
+            return $ret['data']['downloadUrl'];
+        } else {
+            return 0;
+        }
+
+
     }
 
     /**

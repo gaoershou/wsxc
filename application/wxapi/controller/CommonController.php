@@ -398,16 +398,37 @@ class CommonController extends Controller
      */
     public function getPreviewPdf2png()
     {
-//        $path = $_SERVER['DOCUMENT_ROOT'].'/uploads/';
-//        $url = "https://esignoss.esign.cn/1111564182/b53d7cb8-9b6c-486d-8f1f-6ebe2c6d2ec1/esign_doc_b844cb5a24de4400a81bafb245e4559b4229074004163225882.pdf.pdf?Expires=1572958749&OSSAccessKeyId=LTAIdvHfiVrzDKbE&Signature=n1MgtODSt7UbreoV08HxDQUFpX4%3D";
-//        //获取远程图片转化成pdf文件
-//        $pdf = getUrlFile($url,$path,'.pdf');
-//
-        $pdf = '/home/www/wsxc/public/uploads/1572955211330.pdf';
-      $pathUrl = pdf2png($pdf);
-        var_dump($pathUrl);
+        $fileId = request()->param('fileId');
+        $key = request()->param('key');
+        return json(array('file_id'=>$fileId));
+        $path = $_SERVER['DOCUMENT_ROOT'].'/uploads/';//文件保存路径
+        $onlineSignObj = OnlineSign::getInstance();
+        //获取文件地址
+        $pathUrl = $onlineSignObj->selectFileUrl($fileId);
+       //获取远程图片转化成pdf文件
+        $pdf = getUrlFile($pathUrl,$path,'.pdf');
+        $file = pdf2png($pdf,$path,$key);//将pdf文件转化成png图片
+        $upManager = new UploadManager();
+        $auth = new Auth(config('qiniu.accessKey'), config('qiniu.secretKey'));
+        $index = mt_rand(0,2);
+        $bucketName = config('qiniu.bucket')[1][$index]['bucket_name'];
+        $domain = config('qiniu.bucket')[1][$index]['domain']; //域名
+        $token = $auth->uploadToken($bucketName);
+        list($ret, $error) = $upManager->putFile($token,$key,$file);
+        //删除保存到本地的图片
+        @unlink($pdf);
+        @unlink($path);
+        if(!$error){//有结果
+            $data = array(
+                'error' => 0,
+                'url' => $domain.$ret['key']
+            );
+            return json($data);
+        }else{//无结果
+            return json(config('weixin.upload')[3]);
+        }
 
-//       $onlineSignObj = OnlineSign::getInstance();
+//
 //       $token = $onlineSignObj->getOnlineSignToken();
 //        var_dump($token);
     }

@@ -13,12 +13,15 @@
 /*
  * 模拟http请求
  */
-function http_request($url,$data=''){
+function http_request($url,$data='',$header=''){
 
     $curl = curl_init();
     curl_setopt($curl, CURLOPT_URL, $url);
     curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
     curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
+    if($header){
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
+    }
     if (!empty($data)){
         curl_setopt($curl, CURLOPT_POST, 1);
         curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
@@ -847,7 +850,7 @@ function getUrlFile($url,$path,$extension){
  *
  * @throws Exception
  */
-function pdf2png($pdf,$path)
+function pdf2png($pdf,$path,$key)
 {
     try {
         $im = new Imagick();
@@ -871,7 +874,7 @@ function pdf2png($pdf,$path)
             $canvas->compositeImage($sub, Imagick::COMPOSITE_DEFAULT, 5, 5);
         }
         $canvas->resetIterator();
-        $fileName = time() . '.png';
+        $fileName = $path .$key. '.png';
         if (file_exists($fileName)) {
             unlink($fileName);
         }
