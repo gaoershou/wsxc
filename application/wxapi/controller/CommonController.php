@@ -411,8 +411,8 @@ class CommonController extends Controller
         $upManager = new UploadManager();
         $auth = new Auth(config('qiniu.accessKey'), config('qiniu.secretKey'));
         $index = mt_rand(0,2);
-        $bucketName = config('qiniu.bucket')[1][$index]['bucket_name'];
-        $domain = config('qiniu.bucket')[1][$index]['domain']; //域名
+        $bucketName = config('qiniu.bucket')[0][$index]['bucket_name'];
+        $domain = config('qiniu.bucket')[0][$index]['domain']; //域名
         $token = $auth->uploadToken($bucketName);
         list($ret, $error) = $upManager->putFile($token,$key.'.png',$file);
         //删除保存到本地的图片
