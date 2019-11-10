@@ -6,8 +6,8 @@
  * Time: 15:06
  */
 return [
-    'prefixUrl' => 'https://openapi.esign.cn',
-    'projectId' => '5111585557',
-    'projectsecret' => 'a8992f76f774277be7c21da02ea82db9',
+    'prefixUrl' => 'https://smlopenapi.esign.cn',
+    'projectId' => '4438770529',
+    'projectsecret' => 'f951c7218e4f5d2972806ed0e3cc2d9a',
     'prefix' => 'online_sign::',
 ];
