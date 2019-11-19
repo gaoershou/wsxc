@@ -301,7 +301,9 @@ class CommonController extends Controller
 //        //根据token获取用户的信息
 //        $tokenInfo = cache($mcKey);
 //        var_dump($tokenInfo);die();
-      echo phpinfo();
+//      echo phpinfo();
+        $url = 'https://dev.gaoershou.com/upload/1572858602215.pdf';
+
 
     }
     /**

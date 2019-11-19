@@ -40,7 +40,7 @@ class UserController extends Controller
         if(!$memberWxInfo){//微信用户不存在，建立
             $wxdata['groupid'] = 0;
             $wxdata['uid'] = 0;//默认为0
-            $wxdata['xcxopenid'] = $info['openId'];
+            $wxdata['wsxcopenid'] = $info['openId'];
             $wxdata['unionid'] = $info['unionId'];
             $wxdata['nickname'] = $info['nickName'];
             $wxdata['sex'] = $info['gender'];
